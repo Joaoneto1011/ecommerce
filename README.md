@@ -26,16 +26,21 @@ No momento, os dados estão sendo armazenados em memória, mas futuramente será
 - Spring Data JPA *(em breve)*
 - PostgreSQL ou MySQL *(em breve)*
 - Maven
-- Lombok *(opcional)*
+- Lombok
 
 ---
 
 ## 📂 Estrutura do projeto
+
 com.joaoneto.ecommerce
 │
+
 ├── controllers # Camada responsável pelas requisições HTTP
+
 ├── services # Regras de negócio da aplicação
+
 ├── model # Representação das entidades
+
 └── EcommerceApplication.java
 
 
