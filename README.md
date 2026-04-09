@@ -41,54 +41,56 @@ com.joaoneto.ecommerce
 
 ---
 
-🧠 Lógica atual
-Os dados são armazenados em memória (ArrayList)
-Não há persistência em banco de dados ainda
-Não há validação de dados
-Não há autenticação
+## 🧠 Lógica atual
+
+- Os dados são armazenados em memória (ArrayList)
+- Não há persistência em banco de dados ainda
+- Não há validação de dados
+- Não há autenticação
 
 ---
 
-🔐 Funcionalidades futuras
- Integração com banco de dados (PostgreSQL ou MySQL)
- Criação de entidade Produto
- Sistema de usuários e autenticação (Spring Security + JWT)
- Relacionamento entre categorias e produtos
- Sistema de pedidos
- Validações com Bean Validation
- Tratamento global de exceções
- Logs estruturados
- Deploy da aplicação
+## 🔐 Funcionalidades futuras
 
- ---
- 
-📊 Status do projeto
+- Integração com banco de dados (PostgreSQL ou MySQL)
+- Criação de entidade Produto
+- Sistema de usuários e autenticação (Spring Security + JWT)
+- Relacionamento entre categorias e produtos
+- Sistema de pedidos
+- Validações com Bean Validation
+- Tratamento global de exceções
+- Logs estruturados
+- Deploy da aplicação
 
-📌 Em desenvolvimento inicial
+---
+
+## 📊 Status do projeto
+
+📌 Em desenvolvimento inicial  
 📈 Evoluindo para um sistema completo de e-commerce
 
 ---
 
-🎯 Objetivo
+## 🎯 Objetivo
 
 Este projeto tem como objetivo:
 
-Consolidar conhecimentos em Java e Spring Boot
-Aprender arquitetura de APIs REST
-Construir um projeto completo para portfólio
-Simular um sistema real utilizado no mercado
+- Consolidar conhecimentos em Java e Spring Boot  
+- Aprender arquitetura de APIs REST  
+- Construir um projeto completo para portfólio  
+- Simular um sistema real utilizado no mercado  
 
 ---
 
-🧑‍💻 Autor
+## 🧑‍💻 Autor
 
-Desenvolvido por João Neto
+Desenvolvido por **João Neto**
 
-GitHub: https://github.com/Joaoneto1011
+- GitHub: https://github.com/Joaoneto1011
 
 ---
 
-📌 Observações
+## 📌 Observações
 
-Este projeto está sendo desenvolvido passo a passo como parte de estudos.
+Este projeto está sendo desenvolvido passo a passo como parte de estudos.  
 Novas funcionalidades serão adicionadas conforme a evolução do aprendizado.
