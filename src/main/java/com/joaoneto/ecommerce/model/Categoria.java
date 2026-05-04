@@ -1,28 +1,29 @@
 package com.joaoneto.ecommerce.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
+@Entity(name = "categorias")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Categoria {
 
-    private Long id;
-    private String nome;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idCategoria;
 
-    public Categoria(Long id, String nome) {
-        this.id = id;
-        this.nome = nome;
-    }
+    @NotBlank
+    @Size(min = 5, message = "O nome da categoria deve conter no minimo 5 letras")
+    private String nomeCategoria;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
 }
