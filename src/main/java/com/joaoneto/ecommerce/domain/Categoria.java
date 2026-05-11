@@ -1,4 +1,4 @@
-package com.joaoneto.ecommerce.model;
+package com.joaoneto.ecommerce.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +23,7 @@ public class Categoria {
     private Long idCategoria;
 
     @NotBlank
-    @Size(min = 5, message = "O nome da categoria deve conter no minimo 5 letras")
+    @Size(min = 5, message = "O nome da categoria deve conter no minimo 5 letras.")
     private String nomeCategoria;
 
 }

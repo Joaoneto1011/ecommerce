@@ -1,10 +1,12 @@
 package com.joaoneto.ecommerce.services;
 
+import com.joaoneto.ecommerce.domain.Categoria;
+import com.joaoneto.ecommerce.dtos.CategoriaDTO;
+import com.joaoneto.ecommerce.dtos.CategoriaResponseDTO;
 import com.joaoneto.ecommerce.exceptions.APIException;
 import com.joaoneto.ecommerce.exceptions.RecursoNaoEncontradoException;
-import com.joaoneto.ecommerce.model.Categoria;
 import com.joaoneto.ecommerce.repositories.CategoriaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,56 +16,81 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
 
     private final CategoriaRepository categoriaRepository;
 
-    public ImplementacaoCategoriaService(CategoriaRepository categoriaRepository) {
+    private final ModelMapper modelMapper;
+
+    public ImplementacaoCategoriaService(CategoriaRepository categoriaRepository, ModelMapper modelMapper) {
         this.categoriaRepository = categoriaRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public List<Categoria> buscarTodasCategorias() {
-       return categoriaRepository.findAll();
+    public CategoriaResponseDTO buscarTodasCategorias() {
+
+        List<Categoria> categorias = categoriaRepository.findAll();
+
+        List<CategoriaDTO> dtos = categorias.stream()
+                .map(categoria -> modelMapper.map(categoria, CategoriaDTO.class))
+                .toList();
+
+        return new CategoriaResponseDTO(dtos);
     }
 
     @Override
-    public Categoria buscarCategoriaPorID(Long id) {
-        return categoriaRepository.findById(id)
+    public CategoriaDTO buscarCategoriaPorID(Long id) {
+
+        Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria", "id", id));
+
+        return modelMapper.map(categoria, CategoriaDTO.class);
     }
 
     @Override
-    public String criarCategoria(Categoria categoria) {
-        Categoria existente = categoriaRepository.findByNomeCategoria(categoria.getNomeCategoria());
+    public CategoriaDTO criarCategoria(CategoriaDTO categoriaDTO) {
+
+        Categoria existente = categoriaRepository
+                .findByNomeCategoria(categoriaDTO.getNomeCategoria());
 
         if (existente != null) {
-            throw new APIException("Categoria com o nome " + categoria.getNomeCategoria() + " ja existe!");
+            throw new APIException(
+                    "Categoria com o nome "
+                            + categoriaDTO.getNomeCategoria()
+                            + " ja existe!"
+            );
         }
-        categoriaRepository.save(categoria);
-        return "Categoria criada com sucesso";
+        Categoria categoria = modelMapper.map(categoriaDTO, Categoria.class);
+
+        Categoria categoriaSalva = categoriaRepository.save(categoria);
+
+        return modelMapper.map(categoriaSalva, CategoriaDTO.class);
     }
 
     @Override
-    public String deletarCategoriaPorID(Long id) {
+    public CategoriaDTO deletarCategoriaPorID(Long id) {
+
         Categoria categoria = categoriaRepository.findById(id)
                         .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria", "Id", id));
+
         categoriaRepository.delete(categoria);
 
-        return "Categoria deletada com sucesso";
+        return modelMapper.map(categoria, CategoriaDTO.class);
     }
 
     @Override
-    public String atualizarCategoriaPorID(Categoria novaCategoria, Long id) {
+    public CategoriaDTO atualizarCategoriaPorID(CategoriaDTO categoriaDTO, Long id) {
+
         Categoria categoria = categoriaRepository.findById(id)
                         .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria", "Id", id));
 
-        Categoria existente = categoriaRepository.findByNomeCategoria(novaCategoria.getNomeCategoria());
+        Categoria existente = categoriaRepository.findByNomeCategoria(categoriaDTO.getNomeCategoria());
 
         if (existente != null && !existente.getIdCategoria().equals(id)) {
             throw new APIException("Ja existe uma categoria com esse nome!");
         }
 
-        categoria.setNomeCategoria(novaCategoria.getNomeCategoria());
+        categoria.setNomeCategoria(categoriaDTO.getNomeCategoria());
 
-        categoriaRepository.save(categoria);
+        Categoria categoriaAtualizada = categoriaRepository.save(categoria);
 
-        return "Categoria atualizada com sucesso";
+        return modelMapper.map(categoriaAtualizada, CategoriaDTO.class);
     }
 }

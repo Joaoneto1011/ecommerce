@@ -1,15 +1,19 @@
 package com.joaoneto.ecommerce.services;
 
-import com.joaoneto.ecommerce.model.Categoria;
-
-import java.util.List;
+import com.joaoneto.ecommerce.domain.Categoria;
+import com.joaoneto.ecommerce.dtos.CategoriaDTO;
+import com.joaoneto.ecommerce.dtos.CategoriaResponseDTO;
 
 public interface CategoriaService {
 
-    List<Categoria> buscarTodasCategorias();
-    Categoria buscarCategoriaPorID(Long id);
-    String criarCategoria(Categoria categoria);
-    String deletarCategoriaPorID(Long id);
-    String atualizarCategoriaPorID(Categoria categoria, Long id);
+    CategoriaResponseDTO buscarTodasCategorias();
+
+    CategoriaDTO buscarCategoriaPorID(Long id);
+
+    CategoriaDTO criarCategoria(CategoriaDTO categoriaDTO);
+
+    CategoriaDTO deletarCategoriaPorID(Long id);
+
+    CategoriaDTO atualizarCategoriaPorID(CategoriaDTO categoriaDTO, Long id);
 
 }
