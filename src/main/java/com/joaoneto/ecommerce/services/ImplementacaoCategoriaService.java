@@ -7,6 +7,10 @@ import com.joaoneto.ecommerce.exceptions.APIException;
 import com.joaoneto.ecommerce.exceptions.RecursoNaoEncontradoException;
 import com.joaoneto.ecommerce.repositories.CategoriaRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,15 +28,36 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     }
 
     @Override
-    public CategoriaResponseDTO buscarTodasCategorias() {
+    public CategoriaResponseDTO buscarTodasCategorias(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String direcao) {
 
-        List<Categoria> categorias = categoriaRepository.findAll();
+        Sort ordenacao = direcao.equalsIgnoreCase("asc")
+                ? Sort.by(ordenarPor).ascending()
+                : Sort.by(ordenarPor).descending();
+
+        Pageable detalhesPagina = PageRequest.of(numeroPagina, tamanhoPagina, ordenacao);
+        Page<Categoria> categoriaPage = categoriaRepository.findAll(detalhesPagina);
+
+        List<Categoria> categorias = categoriaPage.getContent();
 
         List<CategoriaDTO> dtos = categorias.stream()
                 .map(categoria -> modelMapper.map(categoria, CategoriaDTO.class))
                 .toList();
 
-        return new CategoriaResponseDTO(dtos);
+        CategoriaResponseDTO response = new CategoriaResponseDTO();
+
+        response.setConteudo(dtos);
+
+        response.setNumeroPagina(categoriaPage.getNumber());
+
+        response.setTamanhoPagina(categoriaPage.getSize());
+
+        response.setTotalElementos(categoriaPage.getTotalElements());
+
+        response.setTotalPaginas(categoriaPage.getTotalPages());
+
+        response.setPaginaFinal(categoriaPage.isLast());
+
+        return response;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.joaoneto.ecommerce.exceptions;
 
+import com.joaoneto.ecommerce.dtos.APIResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -27,13 +28,19 @@ public class ManipuladorGlobalDeExcecoes {
     }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ResponseEntity<String> tratarRecursoNaoEncontrado(RecursoNaoEncontradoException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    public ResponseEntity<APIResponse> tratarRecursoNaoEncontrado(RecursoNaoEncontradoException e) {
+
+        String mensagem = e.getMessage();
+        APIResponse apiResponse = new APIResponse(mensagem, false);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
 
     }
 
     @ExceptionHandler(APIException.class)
-    public ResponseEntity<String> tratarAPIException(APIException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    public ResponseEntity<APIResponse> tratarAPIException(APIException e) {
+
+        String mensagem = e.getMessage();
+        APIResponse apiResponse = new APIResponse(mensagem, false);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 }

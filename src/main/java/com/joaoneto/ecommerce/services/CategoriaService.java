@@ -6,7 +6,7 @@ import com.joaoneto.ecommerce.dtos.CategoriaResponseDTO;
 
 public interface CategoriaService {
 
-    CategoriaResponseDTO buscarTodasCategorias();
+    CategoriaResponseDTO buscarTodasCategorias(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String direcao);
 
     CategoriaDTO buscarCategoriaPorID(Long id);
 

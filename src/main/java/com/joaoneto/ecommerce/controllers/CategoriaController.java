@@ -1,5 +1,6 @@
 package com.joaoneto.ecommerce.controllers;
 
+import com.joaoneto.ecommerce.config.ConstantesApp;
 import com.joaoneto.ecommerce.dtos.CategoriaDTO;
 import com.joaoneto.ecommerce.dtos.CategoriaResponseDTO;
 import com.joaoneto.ecommerce.domain.Categoria;
@@ -19,14 +20,20 @@ public class CategoriaController {
         this.categoriaService = categoriaService;
     }
 
-
     // =======================
     // BUSCAR TODAS CATEGORIAS
     // =======================
     @GetMapping
-    public ResponseEntity<CategoriaResponseDTO> buscarTodasCategorias() {
-        return ResponseEntity.ok(categoriaService.buscarTodasCategorias());
+    public ResponseEntity<CategoriaResponseDTO> buscarTodasCategorias(
+            @RequestParam(name = "numeroPagina", defaultValue = ConstantesApp.NUMERO_PAGINA, required = false) Integer numeroPagina,
+            @RequestParam(name = "tamanhoPagina", defaultValue = ConstantesApp.TAMANHO_PAGINA, required = false) Integer tamanhoPagina,
+            @RequestParam(name = "ordenarPorCategoria", defaultValue = ConstantesApp.ORDENAR_POR_CATEGORIAS, required = false) String ordenarPor,
+            @RequestParam(name = "classificarOrdem", defaultValue = ConstantesApp.CLASSIFICAR_ORDEM, required = false) String direcao) {
+
+        return ResponseEntity.ok(categoriaService.buscarTodasCategorias(numeroPagina, tamanhoPagina, ordenarPor, direcao));
     }
+
+
 
     // =======================
     // BUSCAR CATEGORIA POR ID

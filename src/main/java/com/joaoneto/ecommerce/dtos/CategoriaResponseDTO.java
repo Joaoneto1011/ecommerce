@@ -12,4 +12,9 @@ import java.util.List;
 public class CategoriaResponseDTO {
 
     private List<CategoriaDTO> conteudo;
+    private Integer numeroPagina;
+    private Integer tamanhoPagina;
+    private Long totalElementos;
+    private Integer totalPaginas;
+    private boolean paginaFinal;
 }
