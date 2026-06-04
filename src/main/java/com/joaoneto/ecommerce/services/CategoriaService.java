@@ -1,12 +1,11 @@
 package com.joaoneto.ecommerce.services;
 
-import com.joaoneto.ecommerce.domain.Categoria;
 import com.joaoneto.ecommerce.dtos.CategoriaDTO;
 import com.joaoneto.ecommerce.dtos.CategoriaResponseDTO;
 
 public interface CategoriaService {
 
-    CategoriaResponseDTO buscarTodasCategorias(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String direcao);
+    CategoriaResponseDTO buscarTodasCategorias(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificaOrdem);
 
     CategoriaDTO buscarCategoriaPorID(Long id);
 

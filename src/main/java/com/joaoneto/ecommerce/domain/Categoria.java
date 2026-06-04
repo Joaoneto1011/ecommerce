@@ -1,15 +1,14 @@
 package com.joaoneto.ecommerce.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Setter
 @Getter
@@ -25,5 +24,8 @@ public class Categoria {
     @NotBlank
     @Size(min = 5, message = "O nome da categoria deve conter no minimo 5 letras.")
     private String nomeCategoria;
+
+    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL)
+    private List<Produto> produtos;
 
 }
