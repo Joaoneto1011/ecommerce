@@ -1,101 +1,304 @@
 # 🛒 E-commerce API
 
-Projeto de uma API REST para um sistema de e-commerce, desenvolvido com Java e Spring Boot.  
+API REST para gerenciamento de um sistema de e-commerce desenvolvida com Java e Spring Boot.
+
+O projeto foi criado com foco em aprendizado prático de desenvolvimento backend, aplicando conceitos utilizados em aplicações reais do mercado, como arquitetura em camadas, persistência de dados, DTOs, tratamento de exceções e paginação.
+
 O objetivo é simular um ambiente real de loja virtual, com gerenciamento de categorias, produtos, usuários e pedidos.
 
-🚧 **Projeto em desenvolvimento** 🚧
-
+🚧 Projeto em desenvolvimento 🚧
 ---
 
-## 📌 Descrição
-
-Esta API está sendo construída com foco em aprendizado prático de desenvolvimento backend, utilizando boas práticas de arquitetura em camadas.
-
-Atualmente, o projeto já possui uma estrutura organizada com Controller, Service e Model, permitindo a criação e listagem de categorias.
-
-No momento, os dados estão sendo armazenados em memória, mas futuramente será integrado com banco de dados relacional.
-
----
-
-## 🚀 Tecnologias utilizadas
+## 🚀 Tecnologias Utilizadas
 
 - Java 21
-- Spring Boot
-- Spring Web (REST APIs)
-- Spring Security *(em breve)*
-- Spring Data JPA *(em breve)*
-- PostgreSQL ou MySQL *(em breve)*
-- Maven
+- Spring Boot 3
+- Spring Web
+- Spring Data JPA
+- Bean Validation
+- H2 Database
+- ModelMapper
 - Lombok
+- Maven
+- Postman
 
 ---
 
-## 📂 Estrutura do projeto
+## 📂 Arquitetura do Projeto
 
-com.joaoneto.ecommerce
-│
+O projeto segue a arquitetura em camadas:
 
-├── controllers # Camada responsável pelas requisições HTTP
+```
+src/main/java/com/joaoneto/ecommerce
 
-├── services # Regras de negócio da aplicação
+├── config
+├── controllers
+├── domain
+├── dtos
+├── exceptions
+├── repositories
+├── services
+└── EcommerceApplication
+```
 
-├── model # Representação das entidades
+### Camadas
 
-└── EcommerceApplication.java
-
+- Controllers → Recebem requisições HTTP
+- Services → Regras de negócio
+- Repositories → Comunicação com banco de dados
+- Domain → Entidades JPA
+- DTOs → Transferência de dados
+- Exceptions → Tratamento global de erros
+- Config → Configurações da aplicação
 
 ---
 
-## 🧠 Lógica atual
+## 📦 Entidades
 
-- Os dados são armazenados em memória (ArrayList)
-- Não há persistência em banco de dados ainda
-- Não há validação de dados
-- Não há autenticação
+### Categoria
+
+| Campo | Tipo |
+|---------|---------|
+| idCategoria | Long |
+| nomeCategoria | String |
+
+Relacionamento:
+
+- Uma categoria possui vários produtos.
 
 ---
 
-## 🔐 Funcionalidades futuras
+### Produto
 
-- Integração com banco de dados (PostgreSQL ou MySQL)
-- Criação de entidade Produto
-- Sistema de usuários e autenticação (Spring Security + JWT)
-- Relacionamento entre categorias e produtos
+| Campo | Tipo |
+|---------|---------|
+| idProduto | Long |
+| nomeProduto | String |
+| descricao | String |
+| imagem | String |
+| quantidade | Integer |
+| preco | Double |
+| desconto | Double |
+| precoEspecial | Double |
+
+Relacionamento:
+
+- Um produto pertence a uma categoria.
+
+---
+
+## ✅ Funcionalidades Implementadas
+
+### Categorias
+
+- Criar categoria
+- Buscar categoria por ID
+- Listar categorias
+- Atualizar categoria
+- Remover categoria
+- Paginação
+- Ordenação
+
+### Produtos
+
+- Criar produto
+- Buscar todos os produtos
+- Buscar produtos por categoria
+- Buscar produtos por palavra-chave
+- Atualizar produto
+- Remover produto
+- Upload de imagem
+- Paginação
+- Ordenação
+
+---
+
+## 🔍 Recursos da API
+
+### Paginação
+
+Exemplo:
+
+```http
+GET /api/categorias?numeroPagina=0&tamanhoPagina=10
+```
+
+---
+
+### Ordenação
+
+Exemplo:
+
+```http
+GET /api/categorias?ordenarPorCategoria=idCategoria&classificarOrdem=asc
+```
+
+---
+
+### Busca por Categoria
+
+```http
+GET /api/public/categorias/{idCategoria}/produtos
+```
+
+---
+
+### Busca por Palavra-chave
+
+```http
+GET /api/public/produtos/keyword/{keyword}
+```
+
+---
+
+### Upload de Imagem
+
+```http
+PUT /api/produtos/{idProduto}/imagem
+```
+
+Utilizando:
+
+```multipart/form-data
+imagem: arquivo.png
+```
+
+---
+
+## 🛡️ Validações
+
+O projeto utiliza Bean Validation para garantir integridade dos dados.
+
+Exemplos:
+
+### Categoria
+
+- Nome obrigatório
+- Mínimo de 5 caracteres
+
+### Produto
+
+- Nome obrigatório
+- Mínimo de 3 caracteres
+- Descrição obrigatória
+- Mínimo de 6 caracteres
+
+---
+
+## ⚠️ Tratamento Global de Exceções
+
+Implementado utilizando:
+
+```java
+@RestControllerAdvice
+```
+
+Tratamento para:
+
+- Erros de validação
+- Recursos não encontrados
+- Regras de negócio da aplicação
+
+Retornando mensagens padronizadas para o cliente.
+
+---
+
+## 🗄️ Banco de Dados
+
+Atualmente o projeto utiliza:
+
+```properties
+spring.datasource.url=jdbc:h2:mem:test
+```
+
+Banco em memória para desenvolvimento e testes.
+
+Console H2 habilitado:
+
+```properties
+spring.h2.console.enabled=true
+```
+
+---
+
+## ▶️ Como Executar
+
+### Clonar o projeto
+
+```bash
+git clone https://github.com/Joaoneto1011/ecommerce-api.git
+```
+
+### Entrar na pasta
+
+```bash
+cd ecommerce-api
+```
+
+### Executar
+
+```bash
+mvn spring-boot:run
+```
+
+ou
+
+```bash
+./mvnw spring-boot:run
+```
+
+---
+
+## 📈 Próximas Implementações
+
+- Spring Security
+- JWT Authentication
+- Cadastro de usuários
+- Carrinho de compras
 - Sistema de pedidos
-- Validações com Bean Validation
-- Tratamento global de exceções
+- PostgreSQL
+- MySQL
+- Swagger/OpenAPI
+- Testes unitários
+- Docker
+- Deploy em nuvem
 - Logs estruturados
-- Deploy da aplicação
 
 ---
 
-## 📊 Status do projeto
+## 🎯 Objetivos do Projeto
 
-📌 Em desenvolvimento inicial  
-📈 Evoluindo para um sistema completo de e-commerce
+Este projeto foi desenvolvido para:
 
----
-
-## 🎯 Objetivo
-
-Este projeto tem como objetivo:
-
-- Consolidar conhecimentos em Java e Spring Boot  
-- Aprender arquitetura de APIs REST  
-- Construir um projeto completo para portfólio  
-- Simular um sistema real utilizado no mercado  
+- Aprender Spring Boot na prática
+- Construir APIs REST profissionais
+- Aplicar arquitetura em camadas
+- Trabalhar com persistência de dados
+- Utilizar boas práticas de desenvolvimento
+- Compor portfólio para oportunidades na área de tecnologia
 
 ---
 
-## 🧑‍💻 Autor
+## 👨‍💻 Autor
 
-Desenvolvido por **João Neto**
+### João Neto
 
-- GitHub: https://github.com/Joaoneto1011
+Estudante de Sistemas de Informação e desenvolvedor backend em formação.
+
+GitHub: 
+https://github.com/Joaoneto1011
+
+LinkedIn: 
+https://www.linkedin.com/in/joao-rodrigues-neto-855757293/
+
+Email: neto31510@gmail.com
+
+Contato: (34) 99891-6565
 
 ---
 
-## 📌 Observações
+## 📌 Status do Projeto
 
-Este projeto está sendo desenvolvido passo a passo como parte de estudos.  
-Novas funcionalidades serão adicionadas conforme a evolução do aprendizado.
+🚧 Em desenvolvimento ativo
+
+Novas funcionalidades estão sendo adicionadas continuamente conforme a evolução dos estudos e do projeto.
