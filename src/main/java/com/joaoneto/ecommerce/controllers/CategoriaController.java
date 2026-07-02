@@ -2,7 +2,7 @@ package com.joaoneto.ecommerce.controllers;
 
 import com.joaoneto.ecommerce.config.ConstantesApp;
 import com.joaoneto.ecommerce.dtos.CategoriaDTO;
-import com.joaoneto.ecommerce.dtos.CategoriaResponseDTO;
+import com.joaoneto.ecommerce.dtos.RespostaDeCategoriaDTO;
 import com.joaoneto.ecommerce.services.CategoriaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,11 +20,11 @@ public class CategoriaController {
     }
 
     @GetMapping
-    public ResponseEntity<CategoriaResponseDTO> buscarTodasCategorias(
+    public ResponseEntity<RespostaDeCategoriaDTO> buscarTodasCategorias(
             @RequestParam(name = "numeroPagina", defaultValue = ConstantesApp.NUMERO_PAGINA, required = false) Integer numeroPagina,
             @RequestParam(name = "tamanhoPagina", defaultValue = ConstantesApp.TAMANHO_PAGINA, required = false) Integer tamanhoPagina,
-            @RequestParam(name = "ordenarPorCategoria", defaultValue = ConstantesApp.ORDENAR_POR_CATEGORIAS, required = false) String ordenarPor,
-            @RequestParam(name = "classificarOrdem", defaultValue = ConstantesApp.CLASSIFICAR_ORDEM, required = false) String classificarOrdem) {
+            @RequestParam(name = "ordenarPorCategoria", defaultValue = ConstantesApp.CAMPO_ORDERNAR_CATEGORIA, required = false) String ordenarPor,
+            @RequestParam(name = "classificarOrdem", defaultValue = ConstantesApp.ORDEM_CLASSIFICACAO, required = false) String classificarOrdem) {
 
         return ResponseEntity.ok(categoriaService.buscarTodasCategorias(numeroPagina, tamanhoPagina, ordenarPor, classificarOrdem));
     }

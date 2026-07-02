@@ -1,18 +1,18 @@
 package com.joaoneto.ecommerce.services;
 
 import com.joaoneto.ecommerce.dtos.ProdutoDTO;
-import com.joaoneto.ecommerce.dtos.ProdutoResponseDTO;
+import com.joaoneto.ecommerce.dtos.RespostaDeProdutoDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
 public interface ProdutoService {
 
-    ProdutoResponseDTO buscarTodosProdutos(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
+    RespostaDeProdutoDTO buscarTodosProdutos(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
 
-    ProdutoResponseDTO buscarProdutoPorCategoria(Long idCategoria, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
+    RespostaDeProdutoDTO buscarProdutoPorCategoria(Long idCategoria, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
 
-    ProdutoResponseDTO buscarProdutoPorPalavraChave(String palavraChave, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
+    RespostaDeProdutoDTO buscarProdutoPorPalavraChave(String palavraChave, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
 
     ProdutoDTO criarProduto(Long idCategoria, ProdutoDTO produtoDTO);
 

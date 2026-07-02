@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class ProdutoResponseDTO {
+@AllArgsConstructor
+public class RespostaDeCategoriaDTO {
 
-    private List<ProdutoDTO> conteudo;
+    private List<CategoriaDTO> conteudo;
     private Integer numeroPagina;
     private Integer tamanhoPagina;
     private Long totalElementos;

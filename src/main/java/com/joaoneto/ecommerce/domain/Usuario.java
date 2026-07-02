@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "usuarios",
        uniqueConstraints = {
         @UniqueConstraint(columnNames = "nomeUsuario"),
@@ -23,19 +25,24 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_usuario")
+    @EqualsAndHashCode.Include
     private Long idUsuario;
 
     @NotBlank
     @Size(max = 20)
+    @Column(name = "nome_usuario", length = 20, nullable = false)
     private String nomeUsuario;
 
     @NotBlank
     @Size(max = 50)
     @Email
+    @Column(name = "email", length = 50, nullable = false)
     private String email;
 
     @NotBlank
     @Size(max = 120)
+    @Column(name = "senha", length = 120, nullable = false)
     private String senha;
 
     public Usuario(String nomeUsuario, String email, String senha) {
@@ -46,22 +53,20 @@ public class Usuario {
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},
     fetch = FetchType.EAGER)
-    @JoinTable(name = "role_usuario",
+    @JoinTable(name = "perfil_usuario",
                 joinColumns = @JoinColumn(name = "id_usuario"),
                 inverseJoinColumns = @JoinColumn(name = "id_role"))
-    private Set<Role> roles = new HashSet<>();
+    private Set<Perfil> perfis = new HashSet<>();
 
-    @Getter
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(name = "endereco_usuario",
-               joinColumns = @JoinColumn(name = "id_usuario"),
-               inverseJoinColumns = @JoinColumn(name = "id_endereco"))
+    @OneToMany(mappedBy = "usuario",
+        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+        orphanRemoval = true)
     private List<Endereco> enderecos = new ArrayList<>();
 
-    @ToString.Exclude
+
     @OneToMany(mappedBy = "usuario",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
             orphanRemoval = true)
-    private Set<Produto> produtos;
+    private Set<Produto> produtos = new HashSet<>();
 
 }

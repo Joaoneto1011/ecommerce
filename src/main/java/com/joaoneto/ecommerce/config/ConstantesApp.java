@@ -1,9 +1,15 @@
 package com.joaoneto.ecommerce.config;
 
-public class ConstantesApp {
+public final class ConstantesApp {
+
+    private ConstantesApp() {
+    }
+
     public static final String NUMERO_PAGINA = "0";
     public static final String TAMANHO_PAGINA = "50";
-    public static final String ORDENAR_POR_CATEGORIAS = "idCategoria";
-    public static final String ORDENAR_POR_PRODUTOS = "idProduto";
-    public static final String CLASSIFICAR_ORDEM = "asc";
+
+    public static final String CAMPO_ORDERNAR_CATEGORIA = "idCategoria";
+    public static final String CAMPO_ORDENAR_PRODUTO = "idProduto";
+
+    public static final String ORDEM_CLASSIFICACAO = "asc";
 }

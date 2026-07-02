@@ -2,7 +2,7 @@ package com.joaoneto.ecommerce.services;
 
 import com.joaoneto.ecommerce.domain.Categoria;
 import com.joaoneto.ecommerce.dtos.CategoriaDTO;
-import com.joaoneto.ecommerce.dtos.CategoriaResponseDTO;
+import com.joaoneto.ecommerce.dtos.RespostaDeCategoriaDTO;
 import com.joaoneto.ecommerce.exceptions.APIException;
 import com.joaoneto.ecommerce.exceptions.RecursoNaoEncontradoException;
 import com.joaoneto.ecommerce.repositories.CategoriaRepository;
@@ -28,36 +28,36 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     }
 
     @Override
-    public CategoriaResponseDTO buscarTodasCategorias(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String direcao) {
+    public RespostaDeCategoriaDTO buscarTodasCategorias(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem) {
 
-        Sort ordenacao = direcao.equalsIgnoreCase("asc")
+        Sort ordenacao = classificarOrdem.equalsIgnoreCase("asc")
                 ? Sort.by(ordenarPor).ascending()
                 : Sort.by(ordenarPor).descending();
 
         Pageable detalhesPagina = PageRequest.of(numeroPagina, tamanhoPagina, ordenacao);
-        Page<Categoria> categoriaPage = categoriaRepository.findAll(detalhesPagina);
+        Page<Categoria> paginaDeCategorias = categoriaRepository.findAll(detalhesPagina);
 
-        List<Categoria> categorias = categoriaPage.getContent();
+        List<Categoria> categorias = paginaDeCategorias.getContent();
 
         List<CategoriaDTO> dtos = categorias.stream()
                 .map(categoria -> modelMapper.map(categoria, CategoriaDTO.class))
                 .toList();
 
-        CategoriaResponseDTO response = new CategoriaResponseDTO();
+        RespostaDeCategoriaDTO resposta = new RespostaDeCategoriaDTO();
 
-        response.setConteudo(dtos);
+        resposta.setConteudo(dtos);
 
-        response.setNumeroPagina(categoriaPage.getNumber());
+        resposta.setNumeroPagina(paginaDeCategorias.getNumber());
 
-        response.setTamanhoPagina(categoriaPage.getSize());
+        resposta.setTamanhoPagina(paginaDeCategorias.getSize());
 
-        response.setTotalElementos(categoriaPage.getTotalElements());
+        resposta.setTotalElementos(paginaDeCategorias.getTotalElements());
 
-        response.setTotalPaginas(categoriaPage.getTotalPages());
+        resposta.setTotalPaginas(paginaDeCategorias.getTotalPages());
 
-        response.setPaginaFinal(categoriaPage.isLast());
+        resposta.setPaginaFinal(paginaDeCategorias.isLast());
 
-        return response;
+        return resposta;
     }
 
     @Override

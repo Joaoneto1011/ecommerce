@@ -1,36 +1,51 @@
 package com.joaoneto.ecommerce.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 @Entity
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "produtos")
-@ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Produto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_produto")
+    @EqualsAndHashCode.Include
     private Long idProduto;
 
     @NotBlank
-    @Size(min = 3, message = "O nome do Produto deve conter no minimo 3 letras")
+    @Size(min = 3, max = 100, message = "O nome do Produto deve conter entre 3 e 100 caracteres.")
+    @Column(name = "nome_produto", length = 100, nullable = false)
     private String nomeProduto;
+
+    @Column(name = "imagem")
     private String imagem;
 
     @NotBlank
-    @Size(min = 6, message = "A descricao do Produto deve conter no minimo 6 letras")
+    @Size(min = 6, max = 500, message = "A descricao do Produto deve conter entre 6 e 500 caracteres.")
+    @Column(name = "descricao", length = 500, nullable = false)
     private String descricao;
+
+    @PositiveOrZero(message = "A quantidade não pode ser negativa.")
+    @Column(name = "quantidade")
     private Integer quantidade;
+
+    @PositiveOrZero(message = "O preço não pode ser negativo.")
+    @Column(name = "preco", nullable = false)
     private double preco;
+
+    @Min(value = 0, message = "O desconto não pode ser menor que 0%.")
+    @Max(value = 100, message = "O desconto não pode ser maior que 100%.")
+    @Column(name = "desconto")
     private double desconto;
+
+    @Column(name = "preco_especial")
     private double precoEspecial;
 
     @ManyToOne

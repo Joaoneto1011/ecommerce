@@ -3,13 +3,12 @@ package com.joaoneto.ecommerce.services;
 import com.joaoneto.ecommerce.domain.Categoria;
 import com.joaoneto.ecommerce.domain.Produto;
 import com.joaoneto.ecommerce.dtos.ProdutoDTO;
-import com.joaoneto.ecommerce.dtos.ProdutoResponseDTO;
+import com.joaoneto.ecommerce.dtos.RespostaDeProdutoDTO;
 import com.joaoneto.ecommerce.exceptions.APIException;
 import com.joaoneto.ecommerce.exceptions.RecursoNaoEncontradoException;
 import com.joaoneto.ecommerce.repositories.CategoriaRepository;
 import com.joaoneto.ecommerce.repositories.ProdutoRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,20 +23,23 @@ import java.util.List;
 @Service
 public class ImplementacaoProdutoService implements ProdutoService{
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private CategoriaRepository categoriaRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ArquivoService arquivoService;
+    private final ArquivoService arquivoService;
 
-    @Value("${project.image}")
-    private String caminho;
+    private final String caminho;
+
+    public ImplementacaoProdutoService(ProdutoRepository produtoRepository, CategoriaRepository categoriaRepository, ModelMapper modelMapper, ArquivoService arquivoService, @Value("${aplicacao.caminho.imagens}") String caminho) {
+        this.produtoRepository = produtoRepository;
+        this.categoriaRepository = categoriaRepository;
+        this.modelMapper = modelMapper;
+        this.arquivoService = arquivoService;
+        this.caminho = caminho;
+    }
 
     @Override
     public ProdutoDTO criarProduto(Long idCategoria, ProdutoDTO produtoDTO) {
@@ -46,139 +48,138 @@ public class ImplementacaoProdutoService implements ProdutoService{
                 .orElseThrow(() ->
                         new RecursoNaoEncontradoException("Categoria", "idCategoria", idCategoria));
 
-        boolean isProductNotPresent = true;
+        boolean produtoJaExiste = false;
 
         List<Produto> produtos = categoria.getProdutos();
-        for (Produto value : produtos) {
-            if (value.getNomeProduto().equals(produtoDTO.getNomeProduto())) {
-                isProductNotPresent = false;
+        for (Produto produto : produtos) {
+            if (produto.getNomeProduto().equals(produtoDTO.getNomeProduto())) {
+                produtoJaExiste = true;
                 break;
             }
         }
 
-        if (isProductNotPresent) {
-
-            Produto produto = modelMapper.map(produtoDTO, Produto.class);
-            produto.setImagem("default.png");
-            produto.setCategoria(categoria);
-            double precoEspecial = produto.getPreco() -
-                    ((produto.getDesconto() * 0.01) * produto.getPreco());
-            produto.setPrecoEspecial(precoEspecial);
-            Produto salvarProduto = produtoRepository.save(produto);
-
-            return modelMapper.map(salvarProduto, ProdutoDTO.class);
-        } else {
-            throw new APIException("Product already exist!!");
+        if (produtoJaExiste) {
+            throw new APIException("Produto já existe!");
         }
+
+        Produto produto = modelMapper.map(produtoDTO, Produto.class);
+        produto.setImagem("default.png");
+        produto.setCategoria(categoria);
+        double precoEspecial = produto.getPreco() -
+                ((produto.getDesconto() * 0.01) * produto.getPreco());
+        produto.setPrecoEspecial(precoEspecial);
+        Produto produtoSalvo = produtoRepository.save(produto);
+
+        return modelMapper.map(produtoSalvo, ProdutoDTO.class);
     }
 
     @Override
-    public ProdutoResponseDTO buscarTodosProdutos(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem) {
+    public RespostaDeProdutoDTO buscarTodosProdutos(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem) {
 
-        Sort sortByAndOrder = classificarOrdem.equalsIgnoreCase("asc")
+        Sort ordenacao = classificarOrdem.equalsIgnoreCase("asc")
                 ? Sort.by(ordenarPor).ascending()
                 : Sort.by(ordenarPor).descending();
 
-        Pageable pageDetails = PageRequest.of(numeroPagina, tamanhoPagina, sortByAndOrder);
-        Page<Produto> produtoPage = produtoRepository.findAll(pageDetails);
+        Pageable detalhesPagina = PageRequest.of(numeroPagina, tamanhoPagina, ordenacao);
+        Page<Produto> paginaDeProdutos = produtoRepository.findAll(detalhesPagina);
 
-        List<Produto> produtos = produtoPage.getContent();
+        List<Produto> produtos = paginaDeProdutos.getContent();
 
         List<ProdutoDTO> produtoDTOS = produtos.stream()
                 .map(produto -> modelMapper.map(produto, ProdutoDTO.class))
                 .toList();
 
-        ProdutoResponseDTO produtoResponse = new ProdutoResponseDTO();
+        RespostaDeProdutoDTO respostaDeProduto = new RespostaDeProdutoDTO();
 
-        produtoResponse.setConteudo(produtoDTOS);
-        produtoResponse.setNumeroPagina(produtoPage.getNumber());
-        produtoResponse.setTamanhoPagina(produtoPage.getSize());
-        produtoResponse.setTotalPaginas(produtoPage.getTotalPages());
-        produtoResponse.setTotalElementos(produtoPage.getTotalElements());
-        produtoResponse.setPaginaFinal(produtoPage.isLast());
-        return produtoResponse;
+        respostaDeProduto.setConteudo(produtoDTOS);
+        respostaDeProduto.setNumeroPagina(paginaDeProdutos.getNumber());
+        respostaDeProduto.setTamanhoPagina(paginaDeProdutos.getSize());
+        respostaDeProduto.setTotalPaginas(paginaDeProdutos.getTotalPages());
+        respostaDeProduto.setTotalElementos(paginaDeProdutos.getTotalElements());
+        respostaDeProduto.setPaginaFinal(paginaDeProdutos.isLast());
+        return respostaDeProduto;
     }
 
     @Override
-    public ProdutoResponseDTO buscarProdutoPorCategoria(Long idCategoria, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem) {
+    public RespostaDeProdutoDTO buscarProdutoPorCategoria(Long idCategoria, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem) {
 
         Categoria categoria = categoriaRepository.findById(idCategoria)
                 .orElseThrow(() ->
                         new RecursoNaoEncontradoException("Categoria", "idCategoria", idCategoria));
 
-        Sort sortByAndOrder = classificarOrdem.equalsIgnoreCase("asc")
+        Sort ordenacao = classificarOrdem.equalsIgnoreCase("asc")
                 ? Sort.by(ordenarPor).ascending()
                 : Sort.by(ordenarPor).descending();
 
-        Pageable pageDetails = PageRequest.of(numeroPagina, tamanhoPagina, sortByAndOrder);
-        Page<Produto> produtoPage = produtoRepository.findByCategoriaOrderByPrecoAsc(categoria, pageDetails);
+        Pageable detalhesPagina = PageRequest.of(numeroPagina, tamanhoPagina, ordenacao);
+        Page<Produto> paginaDeProdutos = produtoRepository.findByCategoriaOrderByPrecoAsc(categoria, detalhesPagina);
 
-        List<Produto> produtos = produtoPage.getContent();
+        List<Produto> produtos = paginaDeProdutos.getContent();
+
+        if (produtos.isEmpty()) {
+            throw new APIException("A categoria " + categoria.getNomeCategoria() + " não possui produtos.");
+        }
 
         List<ProdutoDTO> produtoDTOS = produtos.stream()
                 .map(produto -> modelMapper.map(produto, ProdutoDTO.class))
                 .toList();
 
-        if(produtos.isEmpty()){
-            throw new APIException(categoria.getNomeCategoria() + " categoria does not have any products");
-        }
-
-        ProdutoResponseDTO produtoResponse = new ProdutoResponseDTO();
-        produtoResponse.setConteudo(produtoDTOS);
-        produtoResponse.setNumeroPagina(produtoPage.getNumber());
-        produtoResponse.setTamanhoPagina(produtoPage.getSize());
-        produtoResponse.setTotalPaginas(produtoPage.getTotalPages());
-        produtoResponse.setTotalElementos(produtoPage.getTotalElements());
-        produtoResponse.setPaginaFinal(produtoPage.isLast());
-        return produtoResponse;
+        RespostaDeProdutoDTO respostaDeProduto = new RespostaDeProdutoDTO();
+        respostaDeProduto.setConteudo(produtoDTOS);
+        respostaDeProduto.setNumeroPagina(paginaDeProdutos.getNumber());
+        respostaDeProduto.setTamanhoPagina(paginaDeProdutos.getSize());
+        respostaDeProduto.setTotalPaginas(paginaDeProdutos.getTotalPages());
+        respostaDeProduto.setTotalElementos(paginaDeProdutos.getTotalElements());
+        respostaDeProduto.setPaginaFinal(paginaDeProdutos.isLast());
+        return respostaDeProduto;
     }
 
     @Override
-    public ProdutoResponseDTO buscarProdutoPorPalavraChave(String keyword, Integer numeroPagina, Integer tamanhoPagina,  String ordenarPor, String classificarOrdem) {
+    public RespostaDeProdutoDTO buscarProdutoPorPalavraChave(String palavraChave, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem) {
 
-        Sort sortByAndOrder = classificarOrdem.equalsIgnoreCase("asc")
+        Sort ordenacao = classificarOrdem.equalsIgnoreCase("asc")
                 ? Sort.by(ordenarPor).ascending()
                 : Sort.by(ordenarPor).descending();
 
-        Pageable pageDetails = PageRequest.of(numeroPagina, tamanhoPagina, sortByAndOrder);
-        Page<Produto> produtoPage = produtoRepository.findByNomeProdutoLikeIgnoreCase('%' + keyword + '%', pageDetails);
+        Pageable detalhesPagina = PageRequest.of(numeroPagina, tamanhoPagina, ordenacao);
+        Page<Produto> paginaDeProdutos = produtoRepository.findByNomeProdutoLikeIgnoreCase('%' + palavraChave + '%', detalhesPagina);
 
-        List<Produto> produtos = produtoPage.getContent();
+        List<Produto> produtos = paginaDeProdutos.getContent();
+
+        if (produtos.isEmpty()) {
+            throw new APIException("Nenhum produto encontrado com a palavra-chave: " + palavraChave);
+        }
 
         List<ProdutoDTO> produtoDTOS = produtos.stream()
                 .map(produto -> modelMapper.map(produto, ProdutoDTO.class))
                 .toList();
 
-        if(produtos.isEmpty()){
-            throw new APIException("Products not found with keyword: " + keyword);
-        }
-
-        ProdutoResponseDTO produtoResponse = new ProdutoResponseDTO();
-        produtoResponse.setConteudo(produtoDTOS);
-        produtoResponse.setNumeroPagina(produtoPage.getNumber());
-        produtoResponse.setTamanhoPagina(produtoPage.getSize());
-        produtoResponse.setTotalPaginas(produtoPage.getTotalPages());
-        produtoResponse.setTotalElementos(produtoPage.getTotalElements());
-        produtoResponse.setPaginaFinal(produtoPage.isLast());
-        return produtoResponse;
+        RespostaDeProdutoDTO respostaDeProduto = new RespostaDeProdutoDTO();
+        respostaDeProduto.setConteudo(produtoDTOS);
+        respostaDeProduto.setNumeroPagina(paginaDeProdutos.getNumber());
+        respostaDeProduto.setTamanhoPagina(paginaDeProdutos.getSize());
+        respostaDeProduto.setTotalPaginas(paginaDeProdutos.getTotalPages());
+        respostaDeProduto.setTotalElementos(paginaDeProdutos.getTotalElements());
+        respostaDeProduto.setPaginaFinal(paginaDeProdutos.isLast());
+        return respostaDeProduto;
     }
 
     @Override
     public ProdutoDTO atualizarProduto(Long idProduto, ProdutoDTO produtoDTO) {
 
-        Produto produtoFromDb = produtoRepository.findById(idProduto)
+        Produto produtoDoBanco = produtoRepository.findById(idProduto)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Produto", "idProduto", idProduto));
 
         Produto produto = modelMapper.map(produtoDTO, Produto.class);
 
-        produtoFromDb.setNomeProduto(produto.getNomeProduto());
-        produtoFromDb.setDescricao(produto.getDescricao());
-        produtoFromDb.setQuantidade(produto.getQuantidade());
-        produtoFromDb.setPreco(produto.getPreco());
-        produtoFromDb.setDesconto(produto.getDesconto());
-        produtoFromDb.setPrecoEspecial(produto.getPrecoEspecial());
+        produtoDoBanco.setNomeProduto(produto.getNomeProduto());
+        produtoDoBanco.setDescricao(produto.getDescricao());
+        produtoDoBanco.setQuantidade(produto.getQuantidade());
+        produtoDoBanco.setPreco(produto.getPreco());
+        produtoDoBanco.setDesconto(produto.getDesconto());
+        produtoDoBanco.setPrecoEspecial(produto.getPrecoEspecial());
 
-        Produto produtoSalvo = produtoRepository.save(produtoFromDb);
+        Produto produtoSalvo = produtoRepository.save(produtoDoBanco);
 
         return modelMapper.map(produtoSalvo, ProdutoDTO.class);
     }
@@ -197,14 +198,14 @@ public class ImplementacaoProdutoService implements ProdutoService{
     @Override
     public ProdutoDTO atualizarImagemProduto(Long idProduto, MultipartFile imagem) throws IOException {
 
-        Produto produtoFromDb = produtoRepository.findById(idProduto)
+        Produto produtoDoBanco = produtoRepository.findById(idProduto)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Produto", "idProduto", idProduto));
 
         String nomeArquivo = arquivoService.carregarImagem(caminho, imagem);
 
-        produtoFromDb.setImagem(nomeArquivo);
+        produtoDoBanco.setImagem(nomeArquivo);
 
-        Produto atualizarProduto = produtoRepository.save(produtoFromDb);
+        Produto atualizarProduto = produtoRepository.save(produtoDoBanco);
 
         return modelMapper.map(atualizarProduto, ProdutoDTO.class);
 
