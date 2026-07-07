@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "produtos")
 @Getter
@@ -55,4 +58,7 @@ public class Produto {
     @ManyToOne
     @JoinColumn(name = "id_vendedor")
     private Usuario usuario;
+
+    @OneToMany(mappedBy = "produto", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    private List<ItemDoCarrinho> itensDoCarrinho = new ArrayList<>();
 }

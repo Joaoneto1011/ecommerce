@@ -1,5 +1,6 @@
 package com.joaoneto.ecommerce.services;
 
+import com.joaoneto.ecommerce.domain.Carrinho;
 import com.joaoneto.ecommerce.domain.Categoria;
 import com.joaoneto.ecommerce.domain.Produto;
 import com.joaoneto.ecommerce.dtos.ProdutoDTO;

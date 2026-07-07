@@ -18,7 +18,7 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "usuarios",
        uniqueConstraints = {
-        @UniqueConstraint(columnNames = "nomeUsuario"),
+        @UniqueConstraint(columnNames = "nome_usuario"),
         @UniqueConstraint(columnNames = "email")
        })
 public class Usuario {
@@ -55,7 +55,7 @@ public class Usuario {
     fetch = FetchType.EAGER)
     @JoinTable(name = "perfil_usuario",
                 joinColumns = @JoinColumn(name = "id_usuario"),
-                inverseJoinColumns = @JoinColumn(name = "id_role"))
+                inverseJoinColumns = @JoinColumn(name = "id_perfil"))
     private Set<Perfil> perfis = new HashSet<>();
 
     @OneToMany(mappedBy = "usuario",
@@ -63,6 +63,8 @@ public class Usuario {
         orphanRemoval = true)
     private List<Endereco> enderecos = new ArrayList<>();
 
+    @OneToOne(mappedBy = "usuario", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    private Carrinho carrinho;
 
     @OneToMany(mappedBy = "usuario",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
