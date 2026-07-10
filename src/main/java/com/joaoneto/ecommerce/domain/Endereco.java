@@ -26,14 +26,20 @@ public class Endereco {
     @Column(name = "rua", length = 100, nullable = false)
     private String rua;
 
-    @Size(max = 100, message = "O nome do edifício deve conter no maximo 100 caracteres")
-    @Column(name = "nome_edificio", length = 100)
-    private String nomeEdificio;
+    @NotBlank
+    @Size(min = 1, max = 10, message = "O número deve conter entre 1 e 10 caracteres.")
+    @Column(name = "numero_rua", length = 10, nullable = false)
+    private String numeroRua;
 
     @NotBlank
     @Size(min = 3, max = 60, message = "O nome da cidade deve conter entre 3 e 60 caracteres.")
     @Column(name = "cidade", length = 60, nullable = false)
     private String cidade;
+
+    @NotBlank
+    @Size(min = 2, max = 30, message = "O nome do estado deve conter entre 2 e 30 caracteres.")
+    @Column(name = "estado", length = 30, nullable = false)
+    private String estado;
 
     @NotBlank
     @Size(min = 2, max = 60, message = "O nome do país deve conter entre 2 e 60 caracteres.")
@@ -49,10 +55,11 @@ public class Endereco {
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    public Endereco(String rua, String nomeEdificio, String cidade, String pais, String cep) {
+    public Endereco(String rua, String numeroRua, String cidade, String estado, String pais, String cep) {
         this.rua = rua;
-        this.nomeEdificio = nomeEdificio;
+        this.numeroRua = numeroRua;
         this.cidade = cidade;
+        this.estado = estado;
         this.pais = pais;
         this.cep = cep;
     }
