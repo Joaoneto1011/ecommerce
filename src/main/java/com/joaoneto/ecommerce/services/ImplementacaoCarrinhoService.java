@@ -4,6 +4,7 @@ import com.joaoneto.ecommerce.domain.Carrinho;
 import com.joaoneto.ecommerce.domain.ItemDoCarrinho;
 import com.joaoneto.ecommerce.domain.Produto;
 import com.joaoneto.ecommerce.dtos.CarrinhoDTO;
+import com.joaoneto.ecommerce.dtos.ItemDoCarrinhoDTO;
 import com.joaoneto.ecommerce.dtos.ProdutoDTO;
 import com.joaoneto.ecommerce.exceptions.APIException;
 import com.joaoneto.ecommerce.exceptions.RecursoNaoEncontradoException;
@@ -40,18 +41,22 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
         this.utilitarioDeAutenticacao = utilitarioDeAutenticacao;
     }
 
-    private ProdutoDTO converterParaProdutoDTO(ItemDoCarrinho item) {
-        ProdutoDTO produtoDTO = modelMapper.map(item.getProduto(), ProdutoDTO.class);
-        produtoDTO.setQuantidade(item.getQuantidade());
-        return produtoDTO;
+    private ItemDoCarrinhoDTO converterParaItemDoCarrinhoDTO(ItemDoCarrinho item) {
+        ItemDoCarrinhoDTO itemDTO = new ItemDoCarrinhoDTO();
+        itemDTO.setIdItemDoCarrinho(item.getIdItemDoCarrinho());
+        itemDTO.setProduto(modelMapper.map(item.getProduto(), ProdutoDTO.class));
+        itemDTO.setQuantidade(item.getQuantidade());
+        itemDTO.setDesconto(item.getDesconto());
+        itemDTO.setPrecoComDesconto(item.getPrecoComDesconto());
+        return itemDTO;
     }
 
     private CarrinhoDTO converterParaCarrinhoDTO(Carrinho carrinho) {
         CarrinhoDTO carrinhoDTO = modelMapper.map(carrinho, CarrinhoDTO.class);
-        List<ProdutoDTO> produtos = carrinho.getItensDoCarrinho().stream()
-                .map(this::converterParaProdutoDTO)
+        List<ItemDoCarrinhoDTO> itens = carrinho.getItensDoCarrinho().stream()
+                .map(this::converterParaItemDoCarrinhoDTO)
                 .toList();
-        carrinhoDTO.setProdutos(produtos);
+        carrinhoDTO.setItens(itens);
         return carrinhoDTO;
     }
 
@@ -87,7 +92,7 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
         novoItemDoCarrinho.setCarrinho(carrinho);
         novoItemDoCarrinho.setQuantidade(quantidade);
         novoItemDoCarrinho.setDesconto(produto.getDesconto());
-        novoItemDoCarrinho.setPrecoProduto(produto.getPrecoEspecial());
+        novoItemDoCarrinho.setPrecoComDesconto(produto.getPrecoEspecial());
 
         itemDoCarrinhoRepository.save(novoItemDoCarrinho);
 
@@ -117,9 +122,9 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
     }
 
     @Override
-    public CarrinhoDTO obterCarrinho(String idEmail, Long idCarrinho) {
+    public CarrinhoDTO obterCarrinho(String email, Long idCarrinho) {
 
-        Carrinho carrinho = carrinhoRepository.findByUsuario_EmailAndIdCarrinho(idEmail, idCarrinho)
+        Carrinho carrinho = carrinhoRepository.findByUsuario_EmailAndIdCarrinho(email, idCarrinho)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Carrinho", "idCarrinho", idCarrinho));
 
         return converterParaCarrinhoDTO(carrinho);
@@ -128,10 +133,10 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
     @Override
     public CarrinhoDTO atualizarQuantidadeDoProdutoNoCarrinho(Long idProduto, Integer quantidade) {
 
-        String idEmail = utilitarioDeAutenticacao.emailDoUsuarioLogado();
+        String email = utilitarioDeAutenticacao.emailDoUsuarioLogado();
 
-        Carrinho carrinho = carrinhoRepository.findByUsuario_Email(idEmail)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Carrinho", "email", idEmail));
+        Carrinho carrinho = carrinhoRepository.findByUsuario_Email(email)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Carrinho", "email", email));
 
         Long idCarrinho = carrinho.getIdCarrinho();
 
@@ -154,10 +159,10 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
 
         if (novaQuantidade == 0) {
             deletarProdutoDoCarrinho(idCarrinho, idProduto);
-            return obterCarrinho(idEmail, idCarrinho);
+            return obterCarrinho(email, idCarrinho);
         }
 
-        item.setPrecoProduto(produto.getPrecoEspecial());
+        item.setPrecoComDesconto(produto.getPrecoEspecial());
         item.setQuantidade(novaQuantidade);
         item.setDesconto(produto.getDesconto());
         itemDoCarrinhoRepository.save(item);
@@ -165,7 +170,7 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
         produto.setQuantidade(produto.getQuantidade() - quantidade);
         produtoRepository.save(produto);
 
-        carrinho.setPrecoTotal(carrinho.getPrecoTotal() + (item.getPrecoProduto() * quantidade));
+        carrinho.setPrecoTotal(carrinho.getPrecoTotal() + (item.getPrecoComDesconto() * quantidade));
         carrinhoRepository.save(carrinho);
 
         return converterParaCarrinhoDTO(carrinho);
@@ -181,7 +186,7 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Produto", "idProduto", idProduto));
 
         carrinho.setPrecoTotal(carrinho.getPrecoTotal() -
-                (itemDoCarrinho.getPrecoProduto() * itemDoCarrinho.getQuantidade()));
+                (itemDoCarrinho.getPrecoComDesconto() * itemDoCarrinho.getQuantidade()));
 
         carrinho.getItensDoCarrinho().remove(itemDoCarrinho);
 
@@ -207,12 +212,12 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
         }
 
         double precoCarrinho = carrinho.getPrecoTotal() -
-                (itemDoCarrinho.getPrecoProduto() * itemDoCarrinho.getQuantidade());
+                (itemDoCarrinho.getPrecoComDesconto() * itemDoCarrinho.getQuantidade());
 
-        itemDoCarrinho.setPrecoProduto(produto.getPrecoEspecial());
+        itemDoCarrinho.setPrecoComDesconto(produto.getPrecoEspecial());
 
         carrinho.setPrecoTotal(precoCarrinho +
-                (itemDoCarrinho.getPrecoProduto() * itemDoCarrinho.getQuantidade()));
+                (itemDoCarrinho.getPrecoComDesconto() * itemDoCarrinho.getQuantidade()));
 
         itemDoCarrinho = itemDoCarrinhoRepository.save(itemDoCarrinho);
     }

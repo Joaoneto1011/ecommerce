@@ -39,6 +39,6 @@ public class ItemDoCarrinho {
     private double desconto;
 
     @PositiveOrZero(message = "O preço do produto não pode ser negativo.")
-    @Column(name = "preco_produto")
-    private double precoProduto;
+    @Column(name = "preco_com_desconto")
+    private double precoComDesconto;
 }

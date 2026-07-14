@@ -12,7 +12,7 @@ public interface CarrinhoRepository extends JpaRepository<Carrinho, Long> {
 
     Optional<Carrinho> findByUsuario_Email(String email);
 
-    Optional<Carrinho> findByUsuario_EmailAndIdCarrinho(String idEmail, Long idCarrinho);
+    Optional<Carrinho> findByUsuario_EmailAndIdCarrinho(String email, Long idCarrinho);
 
     List<Carrinho> findByItensDoCarrinho_Produto_IdProduto(Long idProduto);
 }

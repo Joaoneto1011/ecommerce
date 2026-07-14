@@ -14,5 +14,5 @@ public class CarrinhoDTO {
 
     private Long idCarrinho;
     private double precoTotal = 0.0;
-    private List<ProdutoDTO> produtos = new ArrayList<>();
+    private List<ItemDoCarrinhoDTO> itens = new ArrayList<>();
 }

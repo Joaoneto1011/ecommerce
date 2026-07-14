@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 public class ItemDoCarrinhoDTO {
 
     private Long idItemDoCarrinho;
-    private CarrinhoDTO carrinho;
     private ProdutoDTO produto;
     private Integer quantidade;
-    private Double desconto;
-    private Double precoProduto;
+    private double desconto;
+    private double precoComDesconto;
 }

@@ -1,7 +1,6 @@
 package com.joaoneto.ecommerce.services;
 
 import com.joaoneto.ecommerce.dtos.CarrinhoDTO;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -11,7 +10,7 @@ public interface CarrinhoService {
 
     List<CarrinhoDTO> obterTodosCarrinhos();
 
-    CarrinhoDTO obterCarrinho(String idEmail, Long idCarrinho);
+    CarrinhoDTO obterCarrinho(String email, Long idCarrinho);
 
     CarrinhoDTO atualizarQuantidadeDoProdutoNoCarrinho(Long idProduto, Integer quantidade);
 

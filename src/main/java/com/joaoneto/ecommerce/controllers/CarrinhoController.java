@@ -46,13 +46,13 @@ public class CarrinhoController {
     @GetMapping("/carrinhos/usuarios/carrinho")
     public ResponseEntity<CarrinhoDTO> obterCarrinhoPorId() {
 
-        String idEmail = utilitarioDeAutenticacao.emailDoUsuarioLogado();
+        String email = utilitarioDeAutenticacao.emailDoUsuarioLogado();
 
-        Optional<Carrinho> carrinho = carrinhoRepository.findByUsuario_Email(idEmail);
+        Optional<Carrinho> carrinho = carrinhoRepository.findByUsuario_Email(email);
 
         Long idCarrinho = carrinho.get().getIdCarrinho();
 
-        CarrinhoDTO carrinhoDTO = carrinhoService.obterCarrinho(idEmail, idCarrinho);
+        CarrinhoDTO carrinhoDTO = carrinhoService.obterCarrinho(email, idCarrinho);
 
         return new ResponseEntity<CarrinhoDTO>(carrinhoDTO, HttpStatus.OK);
     }
