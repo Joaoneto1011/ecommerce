@@ -1,304 +1,175 @@
-# 🛒 E-commerce API
+🛒 E-commerce API
+API REST completa para gerenciamento de uma plataforma de e-commerce, desenvolvida em Java 21 com Spring Boot 3. O projeto simula um ambiente real de loja virtual: catálogo de produtos e categorias, autenticação e autorização via JWT, carrinho de compras, endereços de entrega e fechamento de pedidos.
 
-API REST para gerenciamento de um sistema de e-commerce desenvolvida com Java e Spring Boot.
+Criado com foco em aplicar, na prática, padrões usados em back-ends profissionais: arquitetura em camadas, DTOs, tratamento global de exceções, paginação, segurança com Spring Security + JWT e documentação de API com OpenAPI/Swagger.
 
-O projeto foi criado com foco em aprendizado prático de desenvolvimento backend, aplicando conceitos utilizados em aplicações reais do mercado, como arquitetura em camadas, persistência de dados, DTOs, tratamento de exceções e paginação.
+📸 Documentação Interativa (Swagger UI)
+A API é totalmente documentada com Swagger/OpenAPI 3.1 — todos os endpoints, exemplos de request/response e mensagens de erro reais estão disponíveis em /swagger-ui/index.html.
 
-O objetivo é simular um ambiente real de loja virtual, com gerenciamento de categorias, produtos, usuários e pedidos.
+Visão geral da documentação Swagger
 
-🚧 Projeto em desenvolvimento 🚧
----
+Exemplo de endpoint com respostas documentadas
 
-## 🚀 Tecnologias Utilizadas
+Autenticação via Bearer Token no Swagger
 
-- Java 21
-- Spring Boot 3
-- Spring Web
-- Spring Data JPA
-- Bean Validation
-- H2 Database
-- ModelMapper
-- Lombok
-- Maven
-- Postman
+Schemas dos DTOs
 
----
+🚀 Tecnologias Utilizadas
+Java 21
+Spring Boot 3.5
+Spring Web (REST)
+Spring Data JPA (Hibernate)
+Spring Security
+Bean Validation (Jakarta Validation)
+JWT (jjwt — autenticação via cookie ou header Authorization: Bearer)
+PostgreSQL
+springdoc-openapi (Swagger UI / OpenAPI 3.1)
+ModelMapper
+Lombok
+Maven
+Postman (testes manuais)
+📂 Arquitetura do Projeto
+O projeto segue arquitetura em camadas:
 
-## 📂 Arquitetura do Projeto
-
-O projeto segue a arquitetura em camadas:
-
-```
 src/main/java/com/joaoneto/ecommerce
-
-├── config
-├── controllers
-├── domain
-├── dtos
-├── exceptions
-├── repositories
-├── services
+├── config            → Configurações gerais (Swagger, constantes da aplicação)
+├── controllers       → Camada de entrada, recebe requisições HTTP
+├── domain            → Entidades JPA
+├── dtos              → Objetos de transferência de dados (DTOs)
+├── exceptions        → Exceções customizadas e tratamento global
+├── repositories      → Comunicação com o banco de dados (Spring Data JPA)
+├── security
+│   ├── config        → Configuração do Spring Security
+│   ├── jwt           → Geração/validação de tokens JWT
+│   ├── request       → DTOs de entrada (login, cadastro)
+│   ├── response      → DTOs de saída de autenticação
+│   └── services      → UserDetailsService e afins
+├── services          → Regras de negócio da aplicação
+├── util              → Classes utilitárias (ex: usuário autenticado atual)
 └── EcommerceApplication
-```
+✅ Funcionalidades
+🔐 Autenticação e Usuários
+Cadastro de usuário com perfis (usuário, vendedor, administrador)
+Login com geração de token JWT (cookie e header Authorization: Bearer)
+Logout
+Consulta de dados do usuário autenticado
+Autorização baseada em perfis (endpoints /api/administrador/** restritos)
+📦 Categorias
+CRUD completo
+Paginação e ordenação
+Validação de nome único
+🛍️ Produtos
+CRUD completo (criação restrita a administradores)
+Busca por categoria
+Busca por palavra-chave
+Upload de imagem do produto
+Paginação e ordenação
+Cálculo automático de preço com desconto
+🛒 Carrinho de Compras
+Adicionar produto ao carrinho
+Atualizar quantidade (incrementar/decrementar)
+Remover produto do carrinho
+Consultar carrinho do usuário logado
+Validações de estoque disponível
+📍 Endereços
+CRUD completo de endereços vinculados ao usuário autenticado
+Validação de campos obrigatórios
+📑 Pedidos
+Finalização de compra a partir do carrinho
+Registro de pagamento (método, gateway, status)
+Congelamento do preço do produto no momento da compra
+⚠️ Tratamento Global de Exceções
+Implementado com @RestControllerAdvice, padronizando todas as respostas de erro da API em um único formato (RespostaDaAPI):
 
-### Camadas
+{
+"mensagem": "Produto nao encontrado com idProduto: 501",
+"status": false,
+"erros": null
+}
+Para erros de validação de campos, o campo erros é preenchido com o mapa de campo → mensagem:
 
-- Controllers → Recebem requisições HTTP
-- Services → Regras de negócio
-- Repositories → Comunicação com banco de dados
-- Domain → Entidades JPA
-- DTOs → Transferência de dados
-- Exceptions → Tratamento global de erros
-- Config → Configurações da aplicação
+{
+"mensagem": "Erro de validação",
+"status": false,
+"erros": {
+"nomeCategoria": "não deve estar em branco"
+}
+}
+Cenários tratados:
 
----
+Erros de validação (@Valid / Bean Validation)
+Recursos não encontrados (404)
+Regras de negócio violadas (400) — ex: estoque insuficiente, produto duplicado, carrinho vazio
+🔍 Recursos da API
+Paginação
 
-## 📦 Entidades
-
-### Categoria
-
-| Campo | Tipo |
-|---------|---------|
-| idCategoria | Long |
-| nomeCategoria | String |
-
-Relacionamento:
-
-- Uma categoria possui vários produtos.
-
----
-
-### Produto
-
-| Campo | Tipo |
-|---------|---------|
-| idProduto | Long |
-| nomeProduto | String |
-| descricao | String |
-| imagem | String |
-| quantidade | Integer |
-| preco | Double |
-| desconto | Double |
-| precoEspecial | Double |
-
-Relacionamento:
-
-- Um produto pertence a uma categoria.
-
----
-
-## ✅ Funcionalidades Implementadas
-
-### Categorias
-
-- Criar categoria
-- Buscar categoria por ID
-- Listar categorias
-- Atualizar categoria
-- Remover categoria
-- Paginação
-- Ordenação
-
-### Produtos
-
-- Criar produto
-- Buscar todos os produtos
-- Buscar produtos por categoria
-- Buscar produtos por palavra-chave
-- Atualizar produto
-- Remover produto
-- Upload de imagem
-- Paginação
-- Ordenação
-
----
-
-## 🔍 Recursos da API
-
-### Paginação
-
-Exemplo:
-
-```http
 GET /api/categorias?numeroPagina=0&tamanhoPagina=10
-```
+Ordenação
 
----
-
-### Ordenação
-
-Exemplo:
-
-```http
 GET /api/categorias?ordenarPorCategoria=idCategoria&classificarOrdem=asc
-```
+Busca por categoria
 
----
-
-### Busca por Categoria
-
-```http
 GET /api/public/categorias/{idCategoria}/produtos
-```
+Busca por palavra-chave
 
----
+GET /api/public/produtos/palavra-chave/{palavraChave}
+Upload de imagem
 
-### Busca por Palavra-chave
-
-```http
-GET /api/public/produtos/keyword/{keyword}
-```
-
----
-
-### Upload de Imagem
-
-```http
 PUT /api/produtos/{idProduto}/imagem
-```
+(multipart/form-data, campo imagem)
 
-Utilizando:
+🛡️ Segurança
+A API utiliza Spring Security + JWT. O token pode ser enviado de duas formas:
 
-```multipart/form-data
-imagem: arquivo.png
-```
+Cookie (definido automaticamente no login via navegador/Postman)
+Header Authorization: Bearer {token} (usado pelo botão Authorize do Swagger UI)
+Endpoints públicos (não exigem token): /api/autenticacao/**, /api/public/**. Endpoints administrativos (/api/administrador/**) exigem perfil de administrador.
 
----
+🗄️ Banco de Dados
+O projeto está configurado para usar PostgreSQL:
 
-## 🛡️ Validações
+spring.datasource.url=jdbc:postgresql://localhost:5432/ecommerce
+spring.datasource.username=postgres
+spring.datasource.password=${DB_PASSWORD:senha-padrao-dev}
+spring.jpa.hibernate.ddl-auto=update
+O suporte a H2 (memória) e MySQL foi mantido comentado no application.properties, caso queira alternar o banco durante o desenvolvimento.
 
-O projeto utiliza Bean Validation para garantir integridade dos dados.
+Variáveis de ambiente
+Variável	Descrição	Obrigatória
+DB_PASSWORD	Senha do banco PostgreSQL	Sim (produção)
+JWT_SECRET	Chave secreta usada para assinar os tokens JWT	Sim (produção)
+▶️ Como Executar
+Pré-requisitos
+Java 21+
+Maven
+PostgreSQL rodando localmente (ou ajuste a datasource.url)
+Passos
+git clone https://github.com/Joaoneto1011/ecommerce.git
+cd ecommerce
+Configure o banco de dados criando um banco ecommerce no PostgreSQL, e defina as variáveis de ambiente (ou use os valores padrão de desenvolvimento já presentes no application.properties).
 
-Exemplos:
-
-### Categoria
-
-- Nome obrigatório
-- Mínimo de 5 caracteres
-
-### Produto
-
-- Nome obrigatório
-- Mínimo de 3 caracteres
-- Descrição obrigatória
-- Mínimo de 6 caracteres
-
----
-
-## ⚠️ Tratamento Global de Exceções
-
-Implementado utilizando:
-
-```java
-@RestControllerAdvice
-```
-
-Tratamento para:
-
-- Erros de validação
-- Recursos não encontrados
-- Regras de negócio da aplicação
-
-Retornando mensagens padronizadas para o cliente.
-
----
-
-## 🗄️ Banco de Dados
-
-Atualmente o projeto utiliza:
-
-```properties
-spring.datasource.url=jdbc:h2:mem:test
-```
-
-Banco em memória para desenvolvimento e testes.
-
-Console H2 habilitado:
-
-```properties
-spring.h2.console.enabled=true
-```
-
----
-
-## ▶️ Como Executar
-
-### Clonar o projeto
-
-```bash
-git clone https://github.com/Joaoneto1011/ecommerce-api.git
-```
-
-### Entrar na pasta
-
-```bash
-cd ecommerce-api
-```
-
-### Executar
-
-```bash
-mvn spring-boot:run
-```
-
-ou
-
-```bash
 ./mvnw spring-boot:run
-```
+A aplicação sobe em http://localhost:8080.
 
----
+Acessando a documentação
+http://localhost:8080/swagger-ui/index.html
+📈 Próximas Implementações
+Frontend com React + JavaScript, consumindo esta API
+Testes unitários e de integração
+Docker / docker-compose
+Deploy em nuvem (AWS Elastic Beanstalk)
+Logs estruturados
+CI/CD
+🎯 Objetivos do Projeto
+Aprender Spring Boot e Spring Security na prática
+Construir uma API REST profissional, documentada e segura
+Aplicar arquitetura em camadas e boas práticas de tratamento de erro
+Compor portfólio para oportunidades na área de backend
+👨‍💻 Autor
+João Neto Estudante de Sistemas de Informação e desenvolvedor backend em formação.
 
-## 📈 Próximas Implementações
-
-- Spring Security
-- JWT Authentication
-- Cadastro de usuários
-- Carrinho de compras
-- Sistema de pedidos
-- PostgreSQL
-- MySQL
-- Swagger/OpenAPI
-- Testes unitários
-- Docker
-- Deploy em nuvem
-- Logs estruturados
-
----
-
-## 🎯 Objetivos do Projeto
-
-Este projeto foi desenvolvido para:
-
-- Aprender Spring Boot na prática
-- Construir APIs REST profissionais
-- Aplicar arquitetura em camadas
-- Trabalhar com persistência de dados
-- Utilizar boas práticas de desenvolvimento
-- Compor portfólio para oportunidades na área de tecnologia
-
----
-
-## 👨‍💻 Autor
-
-### João Neto
-
-Estudante de Sistemas de Informação e desenvolvedor backend em formação.
-
-GitHub: 
-https://github.com/Joaoneto1011
-
-LinkedIn: 
-https://www.linkedin.com/in/joao-rodrigues-neto-855757293/
-
+GitHub: github.com/Joaoneto1011
+LinkedIn: linkedin.com/in/joao-rodrigues-neto-855757293
 Email: neto31510@gmail.com
-
-Contato: (34) 99891-6565
-
----
-
-## 📌 Status do Projeto
-
-🚧 Em desenvolvimento ativo
-
-Novas funcionalidades estão sendo adicionadas continuamente conforme a evolução dos estudos e do projeto.
+📌 Status do Projeto
+🚧 Em desenvolvimento ativo — novas funcionalidades sendo adicionadas continuamente.
