@@ -15,7 +15,7 @@ import java.util.Map;
 public class ManipuladorGlobalDeExceptions {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> tratarErrosValidacao(MethodArgumentNotValidException excecao) {
+    public ResponseEntity<RespostaDaAPI> tratarErrosValidacao(MethodArgumentNotValidException excecao) {
 
         Map<String, String> erros = new HashMap<>();
 
@@ -24,23 +24,35 @@ public class ManipuladorGlobalDeExceptions {
             String mensagem = erro.getDefaultMessage();
             erros.put(campo, mensagem);
         });
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erros);
+
+        RespostaDaAPI resposta = new RespostaDaAPI(
+                "Erro de validação",
+                false
+        );
+        resposta.setErros(erros);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
     }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<RespostaDaAPI> tratarRecursoNaoEncontrado(RecursoNaoEncontradoException excecao) {
 
-        String mensagem = excecao.getMessage();
-        RespostaDaAPI respostaDaAPI = new RespostaDaAPI(mensagem, false);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respostaDaAPI);
+        RespostaDaAPI resposta = new RespostaDaAPI(
+                excecao.getMessage(),
+                false
+        );
 
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resposta);
     }
 
     @ExceptionHandler(APIException.class)
     public ResponseEntity<RespostaDaAPI> tratarAPIException(APIException excecao) {
 
-        String mensagem = excecao.getMessage();
-        RespostaDaAPI respostaDaAPI = new RespostaDaAPI(mensagem, false);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respostaDaAPI);
+        RespostaDaAPI resposta = new RespostaDaAPI(
+                excecao.getMessage(),
+                false
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
     }
 }

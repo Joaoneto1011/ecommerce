@@ -42,6 +42,16 @@ public class UtilitarioJwt {
         }
     }
 
+    public String obterJwtDosCabecalhos(HttpServletRequest requisicao) {
+        String bearerToken = requisicao.getHeader("Authorization");
+
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+
+        return null;
+    }
+
     public ResponseCookie gerarCookieJwt(ImplementacaoDetalhesUsuario usuarioPrincipal) {
         String jwt = gerarTokenComNomeUsuario(usuarioPrincipal.getNomeUsuario());
         return ResponseCookie.from(jwtCookie, jwt)

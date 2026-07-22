@@ -55,9 +55,23 @@ public class FiltroDeTokenAutenticacao extends OncePerRequestFilter {
         cadeiaDeFiltros.doFilter(requisicao, resposta);
     }
 
+    //private String obterTokenDaRequisicao(HttpServletRequest requisicao) {
+        //String jwt = utilitarioJwt.obterJwtDosCookies(requisicao);
+        //logger.debug("FiltroDeTokenAutenticacao.java: {}", jwt);
+        //return jwt;
+    //}
+
     private String obterTokenDaRequisicao(HttpServletRequest requisicao) {
-        String jwt = utilitarioJwt.obterJwtDosCookies(requisicao);
-        logger.debug("FiltroDeTokenAutenticacao.java: {}", jwt);
-        return jwt;
+        String jwtDoCookie = utilitarioJwt.obterJwtDosCookies(requisicao);
+        if (jwtDoCookie != null) {
+            return jwtDoCookie;
+        }
+
+        String jwtDoCabecalho = utilitarioJwt.obterJwtDosCabecalhos(requisicao);
+        if (jwtDoCabecalho != null) {
+            return jwtDoCabecalho;
+        }
+
+        return null;
     }
 }

@@ -186,14 +186,14 @@ public class ImplementacaoProdutoService implements ProdutoService{
     }
 
     @Override
-    public ProdutoDTO deletarProduto(Long idProduto) {
+    public String deletarProduto(Long idProduto) {
 
         Produto produto = produtoRepository.findById(idProduto)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Produto", "idProduto", idProduto));
 
         produtoRepository.delete(produto);
 
-        return modelMapper.map(produto, ProdutoDTO.class);
+        return "Produto " + produto.getNomeProduto() + " deletado com sucesso !!!";
     }
 
     @Override

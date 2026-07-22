@@ -11,7 +11,7 @@ public interface CategoriaService {
 
     CategoriaDTO criarCategoria(CategoriaDTO categoriaDTO);
 
-    CategoriaDTO deletarCategoriaPorID(Long id);
+    String deletarCategoriaPorID(Long id);
 
     CategoriaDTO atualizarCategoriaPorID(CategoriaDTO categoriaDTO, Long id);
 

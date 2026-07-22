@@ -18,7 +18,7 @@ public interface ProdutoService {
 
     ProdutoDTO atualizarProduto(Long idProduto, ProdutoDTO produtoDTO);
 
-    ProdutoDTO deletarProduto(Long idProduto);
+    String deletarProduto(Long idProduto);
 
     ProdutoDTO atualizarImagemProduto(Long idProduto, MultipartFile imagem) throws IOException;
 }

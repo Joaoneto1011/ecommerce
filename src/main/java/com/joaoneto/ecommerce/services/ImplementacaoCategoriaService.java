@@ -90,14 +90,14 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     }
 
     @Override
-    public CategoriaDTO deletarCategoriaPorID(Long id) {
+    public String deletarCategoriaPorID(Long id) {
 
         Categoria categoria = categoriaRepository.findById(id)
-                        .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria", "Id", id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria", "Id", id));
 
         categoriaRepository.delete(categoria);
 
-        return modelMapper.map(categoria, CategoriaDTO.class);
+        return "Categoria " + categoria.getNomeCategoria() + " deletada com sucesso !!!";
     }
 
     @Override
