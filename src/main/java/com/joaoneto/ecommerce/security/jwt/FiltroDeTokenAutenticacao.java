@@ -62,16 +62,17 @@ public class FiltroDeTokenAutenticacao extends OncePerRequestFilter {
     //}
 
     private String obterTokenDaRequisicao(HttpServletRequest requisicao) {
-        String jwtDoCookie = utilitarioJwt.obterJwtDosCookies(requisicao);
-        if (jwtDoCookie != null) {
-            return jwtDoCookie;
-        }
-
         String jwtDoCabecalho = utilitarioJwt.obterJwtDosCabecalhos(requisicao);
         if (jwtDoCabecalho != null) {
             return jwtDoCabecalho;
         }
 
+        String jwtDoCookie = utilitarioJwt.obterJwtDosCookies(requisicao);
+        if (jwtDoCookie != null) {
+            return jwtDoCookie;
+        }
+
         return null;
     }
+
 }

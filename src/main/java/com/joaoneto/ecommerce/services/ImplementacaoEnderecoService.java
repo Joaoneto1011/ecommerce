@@ -6,13 +6,14 @@ import com.joaoneto.ecommerce.dtos.EnderecoDTO;
 import com.joaoneto.ecommerce.exceptions.RecursoNaoEncontradoException;
 import com.joaoneto.ecommerce.repositories.EnderecoRepository;
 import com.joaoneto.ecommerce.repositories.UsuarioRepository;
+import com.joaoneto.ecommerce.util.UtilitarioDeAutenticacao;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class ImplementacaoEnderecoService implements EnderecoService{
+public class ImplementacaoEnderecoService implements EnderecoService {
 
     private final ModelMapper modelMapper;
 
@@ -20,10 +21,14 @@ public class ImplementacaoEnderecoService implements EnderecoService{
 
     private final UsuarioRepository usuarioRepository;
 
-    public ImplementacaoEnderecoService(ModelMapper modelMapper, EnderecoRepository enderecoRepository, UsuarioRepository usuarioRepository) {
+    private final UtilitarioDeAutenticacao utilitarioDeAutenticacao;
+
+    public ImplementacaoEnderecoService(ModelMapper modelMapper, EnderecoRepository enderecoRepository,
+                                        UsuarioRepository usuarioRepository, UtilitarioDeAutenticacao utilitarioDeAutenticacao) {
         this.modelMapper = modelMapper;
         this.enderecoRepository = enderecoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.utilitarioDeAutenticacao = utilitarioDeAutenticacao;
     }
 
     @Override
@@ -56,6 +61,9 @@ public class ImplementacaoEnderecoService implements EnderecoService{
 
         Endereco endereco = enderecoRepository.findById(idEndereco)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Endereco", "idEndereco", idEndereco));
+
+        validarPropriedadeDoEndereco(endereco, idEndereco);
+
         return modelMapper.map(endereco, EnderecoDTO.class);
     }
 
@@ -74,6 +82,8 @@ public class ImplementacaoEnderecoService implements EnderecoService{
 
         Endereco enderecoDoBancoDeDados = enderecoRepository.findById(idEndereco)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Endereco", "idEndereco", idEndereco));
+
+        validarPropriedadeDoEndereco(enderecoDoBancoDeDados, idEndereco);
 
         enderecoDoBancoDeDados.setCidade(enderecoDTO.getCidade());
         enderecoDoBancoDeDados.setCep(enderecoDTO.getCep());
@@ -99,6 +109,8 @@ public class ImplementacaoEnderecoService implements EnderecoService{
         Endereco enderecoDoBancoDeDados = enderecoRepository.findById(idEndereco)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Endereco", "idEndereco", idEndereco));
 
+        validarPropriedadeDoEndereco(enderecoDoBancoDeDados, idEndereco);
+
         Usuario usuario = enderecoDoBancoDeDados.getUsuario();
 
         usuario.getEnderecos().removeIf(endereco -> endereco.getIdEndereco().equals(idEndereco));
@@ -107,5 +119,13 @@ public class ImplementacaoEnderecoService implements EnderecoService{
         enderecoRepository.delete(enderecoDoBancoDeDados);
 
         return "Endereço deletado com sucesso com o idEndereço: " + idEndereco;
+    }
+
+    private void validarPropriedadeDoEndereco(Endereco endereco, Long idEndereco) {
+        Usuario usuarioLogado = utilitarioDeAutenticacao.usuarioLogado();
+
+        if (!endereco.getUsuario().getIdUsuario().equals(usuarioLogado.getIdUsuario())) {
+            throw new RecursoNaoEncontradoException("Endereco", "idEndereco", idEndereco);
+        }
     }
 }

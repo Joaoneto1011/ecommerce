@@ -17,9 +17,13 @@ public class RespostaDeInformacoesUsuario {
     @Schema(description = "Lista de perfis (roles) do usuário", example = "[\"PERFIL_USUARIO\"]")
     private List<String> perfis;
 
-    public RespostaDeInformacoesUsuario(Long id, String nomeUsuario,List<String> perfis) {
+    @Schema(description = "Token JWT para uso em requisições subsequentes (header Authorization: Bearer {token}")
+    private String token;
+
+    public RespostaDeInformacoesUsuario(Long id, String nomeUsuario,List<String> perfis, String token) {
         this.id = id;
         this.nomeUsuario = nomeUsuario;
         this.perfis = perfis;
+        this.token = token;
     }
 }

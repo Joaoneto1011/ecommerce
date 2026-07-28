@@ -1,12 +1,15 @@
 package com.joaoneto.ecommerce.exceptions;
 
 import com.joaoneto.ecommerce.dtos.RespostaDaAPI;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,5 +57,34 @@ public class ManipuladorGlobalDeExceptions {
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<RespostaDaAPI> tratarJsonInvalido(HttpMessageNotReadableException excecao) {
+
+        RespostaDaAPI resposta = new RespostaDaAPI(
+                "Corpo da requisição inválido: verifique o formato dos campos enviados.",
+                false
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<RespostaDaAPI> tratarTipoInvalido(MethodArgumentTypeMismatchException excecao) {
+        String mensagem = String.format("O valor '%s' é inválido para o parâmetro '%s'. Esperado: %s",
+                excecao.getValue(), excecao.getName(),
+                excecao.getRequiredType() != null ? excecao.getRequiredType().getSimpleName() : "tipo válido");
+
+        RespostaDaAPI resposta = new RespostaDaAPI(mensagem, false);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<RespostaDaAPI> tratarViolacaoDeIntegridade(DataIntegrityViolationException excecao) {
+        RespostaDaAPI resposta = new RespostaDaAPI(
+                "Não é possível excluir: existem registros vinculados a este recurso.",
+                false
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(resposta);
     }
 }

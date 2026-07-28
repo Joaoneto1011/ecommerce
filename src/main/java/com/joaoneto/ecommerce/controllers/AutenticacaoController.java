@@ -4,6 +4,7 @@ import com.joaoneto.ecommerce.domain.Perfil;
 import com.joaoneto.ecommerce.domain.TipoPerfil;
 import com.joaoneto.ecommerce.domain.Usuario;
 import com.joaoneto.ecommerce.dtos.RespostaDaAPI;
+import com.joaoneto.ecommerce.exceptions.APIException;
 import com.joaoneto.ecommerce.repositories.PerfilRepository;
 import com.joaoneto.ecommerce.repositories.UsuarioRepository;
 import com.joaoneto.ecommerce.security.jwt.UtilitarioJwt;
@@ -88,7 +89,11 @@ public class AutenticacaoController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        RespostaDeInformacoesUsuario resposta = new RespostaDeInformacoesUsuario(detalhesUsuario.getId(), detalhesUsuario.getNomeUsuario(), perfis);
+        RespostaDeInformacoesUsuario resposta = new RespostaDeInformacoesUsuario(
+                detalhesUsuario.getId(),
+                detalhesUsuario.getNomeUsuario(),
+                perfis,
+                jwtCookie.getValue());
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
                         jwtCookie.toString())
@@ -100,10 +105,11 @@ public class AutenticacaoController {
             @ApiResponse(responseCode = "200", description = "Usuário registrado com sucesso",
                     content = @Content(schema = @Schema(implementation = RespostaDaAPI.class),
                             examples = @ExampleObject(value = "{\"mensagem\": \"Usuário registrado com sucesso!\"}"))),
-            @ApiResponse(responseCode = "400", description = "Nome de usuário/email já em uso, ou corpo da requisição inválido (campos obrigatórios ausentes)",
+            @ApiResponse(responseCode = "400", description = "Nome de usuário/email já em uso, perfil inválido, ou corpo da requisição inválido",
                     content = @Content(schema = @Schema(implementation = RespostaDaAPI.class),
                             examples = { @ExampleObject(name = "Nome de usuário já está em uso", value = "{\"mensagem\": \"Erro: Nome de usuário já está em uso!\", \"status\": false}"),
                                          @ExampleObject(name = "Email já está em uso", value = "{\"mensagem\": \"Erro: Email já está em uso!\", \"status\": false}"),
+                                         @ExampleObject(name = "Perfil inválido", value = "{\"mensagem\": \"Perfil inválido: 'gerente'. Escolha entre: usuario, vendedor, administrador.\", \"status\": false}"),
                                          @ExampleObject(name = "Corpo da requisição inválido", value = "{\"mensagem\": \"Erro de validação\", \"status\": false, \"erros\": {\"nomeUsuario\": \"O nome de usuário é obrigatório\", \"email\": \"O email deve ser válido\", \"senha\": \"A senha deve possuir no mínimo 6 caracteres\"}}")
                             })),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
@@ -147,10 +153,13 @@ public class AutenticacaoController {
                                 .orElseThrow(() -> new RuntimeException("Erro: Perfil não encontrado"));
                         perfis.add(perfilVendedor);
                         break;
-                    default:
+                    case "usuario":
                         Perfil perfilUsuario = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_USUARIO)
                                 .orElseThrow(() -> new RuntimeException("Erro: Perfil não encontrado"));
                         perfis.add(perfilUsuario);
+                        break;
+                    default:
+                        throw new APIException("Perfil inválido: '" + perfil + "'. Utilize 'usuario', 'vendedor' ou 'administrador'.");
                 }
             });
         }
@@ -188,7 +197,7 @@ public class AutenticacaoController {
                 .collect(Collectors.toList());
 
         RespostaDeInformacoesUsuario resposta = new RespostaDeInformacoesUsuario(detalhesUsuario.getId(),
-                detalhesUsuario.getNomeUsuario(), perfis);
+                detalhesUsuario.getNomeUsuario(), perfis, null);
 
         return ResponseEntity.ok().body(resposta);
     }

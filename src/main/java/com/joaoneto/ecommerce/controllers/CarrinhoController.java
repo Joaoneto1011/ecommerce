@@ -49,6 +49,7 @@ public class CarrinhoController {
             @ApiResponse(responseCode = "400", description = "Produto já existe no carrinho, indisponível em estoque, ou quantidade solicitada maior que o estoque disponível",
                     content = @Content(schema = @Schema(implementation = RespostaDaAPI.class),
                             examples = {
+                                    @ExampleObject(name = "Quantidade inválida", value = "{\"mensagem\": \"A quantidade deve ser maior que zero.\", \"status\": false}"),
                                     @ExampleObject(name = "Produto já existe no carrinho", value = "{\"mensagem\": \"Produto Notebook GX já existe no carrinho.\", \"status\": false}"),
                                     @ExampleObject(name = "Produto indisponível", value = "{\"mensagem\": \"Notebook GX não está disponível.\", \"status\": false}"),
                                     @ExampleObject(name = "Quantidade maior que o estoque", value = "{\"mensagem\": \"Por favor, faça um pedido do Notebook GX menor ou igual à quantidade 5.\", \"status\": false}")
@@ -64,6 +65,11 @@ public class CarrinhoController {
             @PathVariable Long idProduto,
             @Parameter(description = "Quantidade do produto que você deseja adicionar")
             @PathVariable Integer quantidade) {
+
+        if (quantidade == null || quantidade <= 0) {
+            throw new APIException("A quantidade deve ser maior que zero.");
+        }
+
         CarrinhoDTO carrinhoDTO = carrinhoService.adicionarProdutoAoCarrinho(idProduto, quantidade);
         return new ResponseEntity<CarrinhoDTO>(carrinhoDTO, HttpStatus.CREATED);
     }

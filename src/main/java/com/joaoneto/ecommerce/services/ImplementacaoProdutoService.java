@@ -178,7 +178,10 @@ public class ImplementacaoProdutoService implements ProdutoService{
         produtoDoBanco.setQuantidade(produto.getQuantidade());
         produtoDoBanco.setPreco(produto.getPreco());
         produtoDoBanco.setDesconto(produto.getDesconto());
-        produtoDoBanco.setPrecoEspecial(produto.getPrecoEspecial());
+
+        double precoEspecial = produtoDoBanco.getPreco() -
+                ((produtoDoBanco.getDesconto() * 0.01) * produtoDoBanco.getPreco());
+        produtoDoBanco.setPrecoEspecial(precoEspecial);
 
         Produto produtoSalvo = produtoRepository.save(produtoDoBanco);
 

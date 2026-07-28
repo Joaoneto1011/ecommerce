@@ -71,13 +71,15 @@ public class ConfiguracaoSegurancaDaWeb {
                                         SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(autenticacao ->
-                        autenticacao.requestMatchers("/api/autenticacao/**").permitAll()
+                        autenticacao.requestMatchers("/api/autenticacao/entrar", "/api/autenticacao/cadastrar",
+                                        "/api/autenticacao/sair", "/api/autenticacao/nome-usuario").permitAll()
+                                .requestMatchers("/error").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/api/public/**").permitAll()
-                                //.requestMatchers("/api/admin/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
+                                .requestMatchers("/api/administrador/**").hasAuthority("PERFIL_ADMINISTRADOR")
                                 .requestMatchers("/images/**").permitAll()
                                 .anyRequest().authenticated());
 

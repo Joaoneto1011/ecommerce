@@ -2,6 +2,7 @@ package com.joaoneto.ecommerce.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,7 @@ public class EnderecoDTO {
     private String pais;
 
     @NotBlank(message = "O CEP não deve estar em branco")
+    @Pattern(regexp = "\\d{5}-?\\d{3}", message = "CEP inválido. Formato esperado: 00000-000")
     @Schema(description = "CEP do endereço", example = "38400-000")
     private String cep;
 }
