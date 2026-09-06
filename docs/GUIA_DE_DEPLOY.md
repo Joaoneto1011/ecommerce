@@ -1,70 +1,59 @@
 # Guia de Deploy — Point da Chama
 
-Objetivo: colocar o backend (`ecommerce`) e o frontend (`ecommerce-loja`) no ar com uma URL pública, para compartilhar com qualquer pessoa (ex: sua mãe).
+Registro de como o backend (`ecommerce`) e o frontend (`ecommerce-frontend`) foram colocados no ar. Caminho usado: **Neon** (banco Postgres) + **Render** (backend, via Docker) + **Vercel** (frontend) + **Cloudinary** (imagens de produto). Todos com plano gratuito.
 
-Caminho escolhido: **Neon** (banco Postgres gratuito) + **Render** (backend) + **Vercel** (frontend). Todos têm plano gratuito suficiente para um projeto de portfólio.
+## URLs em produção
 
-## O que já está pronto no código
+- Backend: `https://ecommerce-tjbn.onrender.com`
+- Frontend: `https://ecommerce-frontend-beta-opal.vercel.app`
+- Repositórios: `github.com/Joaoneto1011/ecommerce` (backend) e `github.com/Joaoneto1011/ecommerce-frontend` (frontend)
 
-- `application.properties`: `spring.datasource.url`, `spring.datasource.username`, `imagem.base.url` e `server.port` agora são configuráveis por variável de ambiente (`DB_URL`, `DB_USERNAME`, `IMAGEM_BASE_URL`, `PORT`), com os valores de hoje como padrão — rodar localmente continua funcionando exatamente igual, sem precisar setar nada.
-- CORS (`aplicacao.cors.origens-permitidas`) já é configurável via `FRONTEND_URLS` (feito em sessão anterior).
-- Frontend (`ecommerce-loja`): a URL da API já é lida de `VITE_API_URL` (variável de ambiente do Vite) — nenhuma mudança de código necessária.
+## O que está pronto no código
 
-## Passo 1 — Banco de dados (Neon)
+- `application.properties`: `spring.datasource.url`, `spring.datasource.username`, `imagem.base.url`, `server.port` e as credenciais do Cloudinary são configuráveis por variável de ambiente. Rodar localmente continua igual, com os mesmos padrões de antes (exceto Cloudinary, ver abaixo).
+- CORS (`aplicacao.cors.origens-permitidas`) configurável via `FRONTEND_URLS`.
+- `Dockerfile` na raiz do backend — o Render builda a imagem Java a partir dele (não existe runtime nativo "Java" no Render, só Docker).
+- Frontend: `VITE_API_URL` já era configurável desde a criação do projeto. `vercel.json` com rewrite `/(.*) → /index.html` — obrigatório para apps React (SPA) na Vercel, senão qualquer acesso direto a uma rota (ex: `/produto/1`, `/admin`, F5 na página) retorna 404 do servidor antes do React Router assumir.
+- Upload de imagem de produto usa **Cloudinary** (`ImplementacaoArquivoService`), não mais disco local.
 
-1. Crie uma conta em https://neon.tech (dá pra entrar com GitHub ou Google).
-2. Crie um novo projeto/banco Postgres (nome sugerido: `ecommerce`).
-3. Copie a "Connection string" que o Neon fornece. Vai ser algo como:
-   `postgresql://usuario:senha@ep-xxxxx.us-east-2.aws.neon.tech/ecommerce?sslmode=require`
-4. Guarde essas 3 partes separadas: usuário, senha, e o restante da URL (host + banco) — vai precisar delas no passo 2.
+## Variáveis de ambiente do backend (Render)
 
-## Passo 2 — Backend (Render)
+| Variável | Valor |
+|---|---|
+| `DB_URL` | connection string do Neon, formato `jdbc:postgresql://<host>/<banco>?sslmode=require` |
+| `DB_USERNAME` | usuário do Neon |
+| `DB_PASSWORD` | senha do Neon |
+| `JWT_SECRET` | string aleatória longa |
+| `FRONTEND_URLS` | URL(s) do frontend, separadas por vírgula |
+| `CLOUDINARY_CLOUD_NAME` | do dashboard do Cloudinary |
+| `CLOUDINARY_API_KEY` | do dashboard do Cloudinary |
+| `CLOUDINARY_API_SECRET` | do dashboard do Cloudinary |
 
-1. Crie conta em https://render.com e conecte sua conta do GitHub.
-2. "New +" → "Web Service" → selecione o repositório `Joaoneto1011/ecommerce` (já está no GitHub).
-3. Configurações do serviço:
-   - **Runtime**: Java (ou "Docker" se o Render pedir; a opção Maven nativa também funciona)
-   - **Build Command**: `./mvnw clean package -DskipTests`
-   - **Start Command**: `java -jar target/ecommerce-0.0.1-SNAPSHOT.jar` (confira o nome exato do .jar gerado em `target/` após o build local, com `mvn clean package`)
-4. Em "Environment Variables", adicione:
-   | Variável | Valor |
-   |---|---|
-   | `DB_URL` | `jdbc:postgresql://ep-xxxxx.neon.tech/ecommerce?sslmode=require` (monte a partir da connection string do Neon, trocando `postgresql://` por `jdbc:postgresql://` e tirando usuário/senha da URL) |
-   | `DB_USERNAME` | usuário do Neon |
-   | `DB_PASSWORD` | senha do Neon |
-   | `JWT_SECRET` | uma string longa e aleatória (ex: gere com `openssl rand -base64 48`) |
-   | `FRONTEND_URLS` | deixe em branco por enquanto, volta aqui no Passo 4 |
-   | `IMAGEM_BASE_URL` | deixe em branco por enquanto, volta aqui no Passo 4 |
-5. Deploy. O Render vai te dar uma URL fixa, tipo `https://ecommerce-xxxx.onrender.com`. Anote essa URL.
+`IMAGEM_BASE_URL` não é mais necessária — o Cloudinary já retorna URLs absolutas.
 
-**Atenção — plano gratuito do Render:**
-- O serviço "dorme" depois de ~15 min sem acesso. O primeiro acesso depois disso demora de 30 a 60 segundos pra "acordar" — é normal, não é erro.
-- O disco é **efêmero**: qualquer imagem de produto enviada pelo painel admin (upload) é perdida quando o serviço reinicia ou é reimplantado. As fotos do cardápio inicial (semeadas via script) sobrevivem até o próximo redeploy, mas novos uploads não são permanentes nesse plano. Se isso importar no futuro, a solução é migrar o armazenamento de imagens para um serviço externo (Cloudinary, S3, Supabase Storage) — posso fazer isso depois, é uma tarefa separada.
+## Por que Cloudinary (e não disco local do Render)
 
-## Passo 3 — Frontend (Vercel)
+O plano gratuito do Render tem disco **efêmero**: qualquer arquivo salvo localmente (como as fotos enviadas pelo painel admin) é apagado sempre que o serviço "dorme" por inatividade (~15 min) e volta a responder — não só em redeploys, como se pensava inicialmente. Isso já causou fotos quebradas em produção. A migração para o Cloudinary (armazenamento externo, plano gratuito generoso) resolve isso de forma definitiva: as imagens ficam hospedadas fora do Render e sobrevivem a qualquer reinício do serviço.
 
-O projeto `ecommerce-loja` ainda não está no GitHub (só existe na sua máquina). Antes deste passo, decida comigo se quer que eu crie um repositório novo e suba o código, ou se prefere subir você mesmo.
+Se um dia as imagens sumirem de novo (não deveria mais acontecer), o script `reparar_imagens_prod.mjs` (na pasta scratchpad da sessão que fez esse trabalho) reenvia as 20 fotos do cardápio via API admin.
 
-1. Crie conta em https://vercel.com, conecte com GitHub.
-2. "Add New..." → "Project" → selecione o repositório `ecommerce-loja`.
-3. Em "Environment Variables", adicione:
-   | Variável | Valor |
-   |---|---|
-   | `VITE_API_URL` | `https://ecommerce-xxxx.onrender.com/api` (a URL do Render do Passo 2 + `/api`) |
-4. Deploy. A Vercel gera uma URL tipo `https://point-da-chama.vercel.app` (ou você pode escolher um subdomínio customizado nas configurações do projeto, gratuito).
+## Plano gratuito do Render — cold start
 
-## Passo 4 — Fechar o ciclo
+O serviço "dorme" após ~15 min sem acesso. O primeiro acesso depois disso demora de 30 a 60 segundos pra "acordar" — normal, não é erro. Se isso incomodar, o plano pago (a partir de ~$7/mês) remove esse comportamento.
 
-1. Volte nas variáveis de ambiente do Render (Passo 2) e preencha:
-   - `FRONTEND_URLS` = a URL da Vercel (ex: `https://point-da-chama.vercel.app`)
-   - `IMAGEM_BASE_URL` = a própria URL do Render + `/imagens` (ex: `https://ecommerce-xxxx.onrender.com/imagens`)
-2. Redeploy do backend no Render (necessário pra aplicar as novas variáveis).
-3. Rode o script de seed do cardápio (`seed_cardapio.mjs`) apontando para a URL de produção em vez de `localhost:8080` — ajusto o script quando chegar nessa etapa.
-4. Acesse a URL da Vercel, teste login, cardápio, checkout e o painel admin.
-5. Envie o link da Vercel para quem quiser — esse é o link final.
+## Passo a passo resumido (para replicar em outro ambiente)
+
+1. **Neon**: criar projeto Postgres, copiar connection string.
+2. **Render**: New Web Service → conectar repo do backend → Language "Docker" → região próxima ao banco → plano Free → configurar as variáveis de ambiente da tabela acima → Deploy.
+3. **Cloudinary**: criar conta gratuita, pegar Cloud Name / API Key / API Secret no dashboard.
+4. **Vercel**: New Project → conectar repo do frontend → variável `VITE_API_URL` = URL do Render + `/api` → Deploy.
+5. Voltar no Render e completar `FRONTEND_URLS` com a URL da Vercel → redeploy.
+6. Rodar o script de seed do cardápio contra a URL de produção.
+7. Testar tudo (catálogo, carrinho, checkout, painel admin) na URL da Vercel.
 
 ## Resumo do que cada serviço guarda
 
-- **Neon**: os dados (produtos, categorias, pedidos, usuários).
-- **Render**: a API (backend Spring Boot) + as imagens enviadas (com a ressalva do disco efêmero acima).
-- **Vercel**: a interface (frontend React) que todo mundo acessa pelo navegador.
+- **Neon**: dados (produtos, categorias, pedidos, usuários).
+- **Cloudinary**: fotos dos produtos.
+- **Render**: a API (backend Spring Boot).
+- **Vercel**: a interface (frontend React).
