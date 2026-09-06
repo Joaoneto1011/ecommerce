@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.Set;
-
 @Data
 public class SolicitacaoDeCadastro {
 
@@ -21,9 +19,6 @@ public class SolicitacaoDeCadastro {
     @Size(max = 50)
     @Email
     private String email;
-
-    @Schema(description = "Perfis desejados para o usuário (ex: usuario, vendedor, administrador). Se não informado, assume perfil padrão de usuário", example = "[\"usuario\"]")
-    private Set<String> perfis;
 
     @Schema(description = "Senha de acesso do usuário", example = "senha123")
     @NotBlank

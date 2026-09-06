@@ -133,37 +133,12 @@ public class AutenticacaoController {
                 codificadorDeSenha.encode(solicitacaoDeCadastro.getSenha())
         );
 
-        Set<String> perfisSelecionados = solicitacaoDeCadastro.getPerfis();
-        Set<Perfil> perfis = new HashSet<>();
-
-        if(perfisSelecionados == null) {
-            Perfil perfilUsuario = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_USUARIO)
-                    .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
-            perfis.add(perfilUsuario);
-        } else {
-            perfisSelecionados.forEach(perfil -> {
-                switch (perfil) {
-                    case "administrador":
-                        Perfil perfilAdministrador = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_ADMINISTRADOR)
-                                .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
-                        perfis.add(perfilAdministrador);
-                        break;
-                    case "vendedor":
-                        Perfil perfilVendedor = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_VENDEDOR)
-                                .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
-                        perfis.add(perfilVendedor);
-                        break;
-                    case "usuario":
-                        Perfil perfilUsuario = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_USUARIO)
-                                .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
-                        perfis.add(perfilUsuario);
-                        break;
-                    default:
-                        throw new APIException("Perfil inválido: '" + perfil + "'. Utilize 'usuario', 'vendedor' ou 'administrador'.");
-                }
-            });
-        }
-        usuario.setPerfis(perfis);
+        // O cadastro público sempre concede apenas o perfil de usuário comum.
+        // Perfis de vendedor/administrador nunca são aceitos por entrada do cliente aqui —
+        // permitir isso seria uma escalada de privilégio (qualquer um poderia se cadastrar como admin).
+        Perfil perfilUsuario = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_USUARIO)
+                .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
+        usuario.setPerfis(Set.of(perfilUsuario));
         usuarioRepository.save(usuario);
         return ResponseEntity.ok(new RespostaDaAPI("Usuário registrado com sucesso!", true));
 
