@@ -1,6 +1,7 @@
 package com.joaoneto.ecommerce.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,11 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SolicitacaoDePedidoDTO {
 
+    @NotNull(message = "O endereço de entrega é obrigatório")
     @Schema(description = "ID do endereço de entrega selecionado", example = "1")
     private Long idEndereco;
-
-    @Schema(description = "Método de pagamento utilizado", example = "cartao_credito")
-    private String metodoDePagamento;
 
     @Schema(description = "Nome do gateway de pagamento utilizado", example = "Stripe")
     private String nomeGateway;

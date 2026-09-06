@@ -16,7 +16,7 @@ public class CategoriaDTO {
     private Long idCategoria;
 
     @NotBlank(message = "O nome da categoria não deve estar em branco")
-    @Size(min = 3, max = 50, message = "O nome da categoria deve ter entre 3 e 50 caracteres")
+    @Size(min = 5, max = 50, message = "O nome da categoria deve ter entre 5 e 50 caracteres")
     @Schema(description = "Nome da categoria que você deseja criar", example = "Notebook GX")
     private String nomeCategoria;
 

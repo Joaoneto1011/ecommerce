@@ -19,10 +19,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "APIs de Categoria", description = "APIs para gerenciamento de categorias")
-@SecurityRequirement(name = "Bearer Authentication")
 @RestController
-@RequestMapping("/api/categorias")
+@RequestMapping("/api")
 public class CategoriaController {
 
     private final CategoriaService categoriaService;
@@ -31,13 +32,25 @@ public class CategoriaController {
         this.categoriaService = categoriaService;
     }
 
+    @Operation(summary = "Buscar todas categorias (público)", description = "API pública para buscar a lista completa de categorias, sem paginação — indicada para menus e filtros")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Categorias encontradas com sucesso",
+                    content = @Content(array = @io.swagger.v3.oas.annotations.media.ArraySchema(schema = @Schema(implementation = CategoriaDTO.class)))),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
+    })
+    @GetMapping("/public/categorias")
+    public ResponseEntity<List<CategoriaDTO>> buscarTodasCategoriasPublico() {
+        return ResponseEntity.ok(categoriaService.buscarTodasCategoriasSemPaginacao());
+    }
+
     @Operation(summary = "Buscar todas categorias", description = "API para buscar todas as categorias existentes, com suporte a paginação e ordenação")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Categorias encontradas com sucesso",
                     content = @Content(schema = @Schema(implementation = RespostaDeCategoriaDTO.class))),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @GetMapping
+    @SecurityRequirement(name = "Bearer Authentication")
+    @GetMapping("/categorias")
     public ResponseEntity<RespostaDeCategoriaDTO> buscarTodasCategorias(
             @Parameter(description = "Número da página")
             @RequestParam(name = "numeroPagina", defaultValue = ConstantesApp.NUMERO_PAGINA, required = false) Integer numeroPagina,
@@ -60,7 +73,8 @@ public class CategoriaController {
                             examples = @ExampleObject(value = "{\"mensagem\": \"Categoria nao encontrado com id: 101\", \"status\": false}"))),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @GetMapping("/{id}")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @GetMapping("/categorias/{id}")
     public ResponseEntity<CategoriaDTO> buscarCategoriaPorID(
             @Parameter(description = "ID da categoria que você deseja buscar")
             @PathVariable Long id) {
@@ -79,7 +93,8 @@ public class CategoriaController {
                             })),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @PostMapping
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PostMapping("/categorias")
     public ResponseEntity<CategoriaDTO> criarCategoria(
             @Valid @RequestBody CategoriaDTO categoriaDTO) {
 
@@ -97,7 +112,8 @@ public class CategoriaController {
                             examples = @ExampleObject(value = "{\"mensagem\": \"Categoria nao encontrado com Id: 101\", \"status\": false}"))),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @DeleteMapping("/categorias/{id}")
     public ResponseEntity<String> deletarCategoria(
             @Parameter(description = "ID da categoria que você deseja excluir")
             @PathVariable Long id) {
@@ -121,7 +137,8 @@ public class CategoriaController {
                             examples = @ExampleObject(value = "{\"mensagem\": \"Categoria nao encontrado com Id: 101\", \"status\": false}"))),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @PutMapping("/{id}")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PutMapping("/categorias/{id}")
     public ResponseEntity<CategoriaDTO> atualizarCategoria(
             @Parameter(description = "ID da categoria que você deseja atualizar")
             @PathVariable Long id,

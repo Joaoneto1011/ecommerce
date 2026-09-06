@@ -8,7 +8,9 @@ import java.io.IOException;
 
 public interface ProdutoService {
 
-    RespostaDeProdutoDTO buscarTodosProdutos(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
+    RespostaDeProdutoDTO buscarTodosProdutos(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem, String palavraChave, String categoria);
+
+    ProdutoDTO buscarProdutoPorId(Long idProduto);
 
     RespostaDeProdutoDTO buscarProdutoPorCategoria(Long idCategoria, Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem);
 

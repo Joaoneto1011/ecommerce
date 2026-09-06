@@ -16,5 +16,8 @@ public interface CarrinhoService {
 
     String deletarProdutoDoCarrinho(Long idCarrinho, Long idProduto);
 
-    void atualizarProdutoNosCarrinhos(Long idCarrinho, Long idProduto);
+    void atualizarProdutoEmTodosOsCarrinhos(Long idProduto);
+
+    void limparCarrinhoAposPedido(Long idCarrinho);
+
 }

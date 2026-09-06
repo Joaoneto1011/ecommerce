@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,8 +22,8 @@ public class ItemDoPedidoDTO {
     private Integer quantidade;
 
     @Schema(description = "Percentual de desconto aplicado ao item", example = "10.0")
-    private double desconto;
+    private BigDecimal desconto;
 
     @Schema(description = "Preço unitário do produto com desconto, congelado no exato momento em que o pedido foi criado (não muda depois, mesmo que o preço do produto no catálogo seja alterado)", example = "3149.91")
-    private double precoProdutoPedido;
+    private BigDecimal precoProdutoPedido;
 }

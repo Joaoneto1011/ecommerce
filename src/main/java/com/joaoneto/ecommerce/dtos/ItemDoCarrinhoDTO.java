@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,8 +22,8 @@ public class ItemDoCarrinhoDTO {
     private Integer quantidade;
 
     @Schema(description = "Percentual de desconto aplicado ao item", example = "10.0")
-    private double desconto;
+    private BigDecimal desconto;
 
     @Schema(description = "Preço unitário do item com o desconto aplicado, válido enquanto o item está no carrinho (é um valor provisório — pode mudar até a compra ser finalizada)", example = "3149.91")
-    private double precoComDesconto;
+    private BigDecimal precoComDesconto;
 }

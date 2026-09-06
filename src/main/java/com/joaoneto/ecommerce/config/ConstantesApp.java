@@ -12,4 +12,6 @@ public final class ConstantesApp {
     public static final String CAMPO_ORDENAR_PRODUTO = "idProduto";
 
     public static final String ORDEM_CLASSIFICACAO = "asc";
+
+    public static final int TAMANHO_MAXIMO_PAGINA = 100;
 }

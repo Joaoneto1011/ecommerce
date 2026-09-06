@@ -3,6 +3,7 @@ package com.joaoneto.ecommerce.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class Carrinho {
     @OneToMany(mappedBy = "carrinho", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     private List<ItemDoCarrinho> itensDoCarrinho  = new ArrayList<>();
 
-    @Column(name = "preco_total")
-    private double precoTotal = 0.0;
+    @Column(name = "preco_total", precision = 12, scale = 2)
+    private BigDecimal precoTotal = BigDecimal.ZERO;
 
 }

@@ -7,16 +7,20 @@ import com.joaoneto.ecommerce.repositories.PerfilRepository;
 import com.joaoneto.ecommerce.repositories.UsuarioRepository;
 import com.joaoneto.ecommerce.security.jwt.FiltroDeTokenAutenticacao;
 import com.joaoneto.ecommerce.security.jwt.TratadorDeAcessoNaoAutorizado;
+import com.joaoneto.ecommerce.security.jwt.TratadorDeAcessoNegado;
 import com.joaoneto.ecommerce.security.services.ImplementacaoDetalhesUsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,6 +40,9 @@ public class ConfiguracaoSegurancaDaWeb {
 
     @Autowired
     private TratadorDeAcessoNaoAutorizado tratadorDeAcessoNaoAutorizado;
+
+    @Autowired
+    private TratadorDeAcessoNegado tratadorDeAcessoNegado;
 
     @Bean
     public FiltroDeTokenAutenticacao filtroDeAutenticacaoPorTokenJWT() {
@@ -63,24 +70,26 @@ public class ConfiguracaoSegurancaDaWeb {
 
     @Bean
     public SecurityFilterChain cadeiaDeFiltros(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-                .exceptionHandling(excecoes -> excecoes.authenticationEntryPoint(tratadorDeAcessoNaoAutorizado))
+        http.cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(excecoes -> excecoes
+                        .authenticationEntryPoint(tratadorDeAcessoNaoAutorizado)
+                        .accessDeniedHandler(tratadorDeAcessoNegado))
                 .sessionManagement(
                         sessao ->
                                 sessao.sessionCreationPolicy(
                                         SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(autenticacao ->
-                        autenticacao.requestMatchers("/api/autenticacao/entrar", "/api/autenticacao/cadastrar",
+                        autenticacao.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers("/api/autenticacao/entrar", "/api/autenticacao/cadastrar",
                                         "/api/autenticacao/sair", "/api/autenticacao/nome-usuario").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/api/public/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/api/administrador/**").hasAuthority("PERFIL_ADMINISTRADOR")
-                                .requestMatchers("/images/**").permitAll()
+                                .requestMatchers("/imagens/**").permitAll()
                                 .anyRequest().authenticated());
 
         http.authenticationProvider(provedorDeAutenticacao());
@@ -99,13 +108,14 @@ public class ConfiguracaoSegurancaDaWeb {
 
         return (web -> web.ignoring().requestMatchers(
                 "/v2/api-docs",
-                "/swagger-recursos/**",
-                "/configuracao/seguranca",
+                "/swagger-resources/**",
+                "/configuration/security",
                 "/swagger-ui.html",
-                "webjars/**"));
+                "/webjars/**"));
     }
 
     @Bean
+    @Profile("!prod")
     public CommandLineRunner dadosDeInicializacao(PerfilRepository perfilRepository, UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             Perfil perfilUsuario = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_USUARIO)

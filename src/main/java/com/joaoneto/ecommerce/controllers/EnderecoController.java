@@ -62,7 +62,7 @@ public class EnderecoController {
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = EnderecoDTO.class)))),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @GetMapping("/enderecos")
+    @GetMapping("/administrador/enderecos")
     public ResponseEntity<List<EnderecoDTO>> buscarEnderecos() {
 
         List<EnderecoDTO> listaEnderecos = enderecoService.buscarEndereco();

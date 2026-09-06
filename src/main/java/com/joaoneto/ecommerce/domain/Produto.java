@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,16 +41,16 @@ public class Produto {
     private Integer quantidade;
 
     @PositiveOrZero(message = "O preço não pode ser negativo.")
-    @Column(name = "preco", nullable = false)
-    private double preco;
+    @Column(name = "preco", nullable = false, precision = 12, scale = 2)
+    private BigDecimal preco;
 
     @Min(value = 0, message = "O desconto não pode ser menor que 0%.")
     @Max(value = 100, message = "O desconto não pode ser maior que 100%.")
-    @Column(name = "desconto")
-    private double desconto;
+    @Column(name = "desconto", precision = 5, scale = 2)
+    private BigDecimal desconto = BigDecimal.ZERO;
 
-    @Column(name = "preco_especial")
-    private double precoEspecial;
+    @Column(name = "preco_especial", precision = 12, scale = 2)
+    private BigDecimal precoEspecial = BigDecimal.ZERO;
 
     @ManyToOne
     @JoinColumn(name = "id_categoria")
@@ -61,4 +62,8 @@ public class Produto {
 
     @OneToMany(mappedBy = "produto", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<ItemDoCarrinho> itensDoCarrinho = new ArrayList<>();
+
+    @Version
+    @Column(name = "versao")
+    private Long versao;
 }

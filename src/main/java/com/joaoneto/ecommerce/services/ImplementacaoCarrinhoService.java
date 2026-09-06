@@ -12,10 +12,12 @@ import com.joaoneto.ecommerce.repositories.CarrinhoRepository;
 import com.joaoneto.ecommerce.repositories.ItemDoCarrinhoRepository;
 import com.joaoneto.ecommerce.repositories.ProdutoRepository;
 import com.joaoneto.ecommerce.util.UtilitarioDeAutenticacao;
+import com.joaoneto.ecommerce.util.UtilitarioDeImagem;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,18 +35,23 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
 
     private final UtilitarioDeAutenticacao utilitarioDeAutenticacao;
 
-    public ImplementacaoCarrinhoService(CarrinhoRepository carrinhoRepository, ProdutoRepository produtoRepository, ItemDoCarrinhoRepository itemDoCarrinhoRepository, ModelMapper modelMapper, UtilitarioDeAutenticacao utilitarioDeAutenticacao) {
+    private final UtilitarioDeImagem utilitarioDeImagem;
+
+    public ImplementacaoCarrinhoService(CarrinhoRepository carrinhoRepository, ProdutoRepository produtoRepository, ItemDoCarrinhoRepository itemDoCarrinhoRepository, ModelMapper modelMapper, UtilitarioDeAutenticacao utilitarioDeAutenticacao, UtilitarioDeImagem utilitarioDeImagem) {
         this.carrinhoRepository = carrinhoRepository;
         this.produtoRepository = produtoRepository;
         this.itemDoCarrinhoRepository = itemDoCarrinhoRepository;
         this.modelMapper = modelMapper;
         this.utilitarioDeAutenticacao = utilitarioDeAutenticacao;
+        this.utilitarioDeImagem = utilitarioDeImagem;
     }
 
     private ItemDoCarrinhoDTO converterParaItemDoCarrinhoDTO(ItemDoCarrinho item) {
         ItemDoCarrinhoDTO itemDTO = new ItemDoCarrinhoDTO();
         itemDTO.setIdItemDoCarrinho(item.getIdItemDoCarrinho());
-        itemDTO.setProduto(modelMapper.map(item.getProduto(), ProdutoDTO.class));
+        ProdutoDTO produtoDTO = modelMapper.map(item.getProduto(), ProdutoDTO.class);
+        produtoDTO.setImagem(utilitarioDeImagem.construirUrl(item.getProduto().getImagem()));
+        itemDTO.setProduto(produtoDTO);
         itemDTO.setQuantidade(item.getQuantidade());
         itemDTO.setDesconto(item.getDesconto());
         itemDTO.setPrecoComDesconto(item.getPrecoComDesconto());
@@ -101,7 +108,8 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
         produto.setQuantidade(produto.getQuantidade() - quantidade);
         produtoRepository.save(produto);
 
-        carrinho.setPrecoTotal(carrinho.getPrecoTotal() + (produto.getPrecoEspecial() * quantidade));
+        BigDecimal subtotal = produto.getPrecoEspecial().multiply(BigDecimal.valueOf(quantidade));
+        carrinho.setPrecoTotal(carrinho.getPrecoTotal().add(subtotal));
         carrinhoRepository.save(carrinho);
 
         return converterParaCarrinhoDTO(carrinho);
@@ -170,7 +178,8 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
         produto.setQuantidade(produto.getQuantidade() - quantidade);
         produtoRepository.save(produto);
 
-        carrinho.setPrecoTotal(carrinho.getPrecoTotal() + (item.getPrecoComDesconto() * quantidade));
+        BigDecimal variacao = item.getPrecoComDesconto().multiply(BigDecimal.valueOf(quantidade));
+        carrinho.setPrecoTotal(carrinho.getPrecoTotal().add(variacao));
         carrinhoRepository.save(carrinho);
 
         return converterParaCarrinhoDTO(carrinho);
@@ -179,16 +188,22 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
     @Override
     public String deletarProdutoDoCarrinho(Long idCarrinho, Long idProduto) {
 
-        Carrinho carrinho = carrinhoRepository.findById(idCarrinho)
+        String email = utilitarioDeAutenticacao.emailDoUsuarioLogado();
+
+        Carrinho carrinho = carrinhoRepository.findByUsuario_EmailAndIdCarrinho(email, idCarrinho)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Carrinho", "idCarrinho", idCarrinho));
 
         ItemDoCarrinho itemDoCarrinho = itemDoCarrinhoRepository.findByCarrinho_IdCarrinhoAndProduto_IdProduto(idCarrinho, idProduto)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Produto", "idProduto", idProduto));
 
-        carrinho.setPrecoTotal(carrinho.getPrecoTotal() -
-                (itemDoCarrinho.getPrecoComDesconto() * itemDoCarrinho.getQuantidade()));
+        BigDecimal valorDoItem = itemDoCarrinho.getPrecoComDesconto().multiply(BigDecimal.valueOf(itemDoCarrinho.getQuantidade()));
+        carrinho.setPrecoTotal(carrinho.getPrecoTotal().subtract(valorDoItem));
 
         carrinho.getItensDoCarrinho().remove(itemDoCarrinho);
+
+        Produto produto = itemDoCarrinho.getProduto();
+        produto.setQuantidade(produto.getQuantidade() + itemDoCarrinho.getQuantidade());
+        produtoRepository.save(produto);
 
         carrinhoRepository.save(carrinho);
 
@@ -196,30 +211,39 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
     }
 
     @Override
-    public void atualizarProdutoNosCarrinhos(Long idCarrinho, Long idProduto) {
-
-        Carrinho carrinho = carrinhoRepository.findById(idCarrinho)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Carrinho", "idCarrinho", idCarrinho));
+    public void atualizarProdutoEmTodosOsCarrinhos(Long idProduto) {
 
         Produto produto = produtoRepository.findById(idProduto)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Produto", "idProduto", idProduto));
 
-        ItemDoCarrinho itemDoCarrinho = itemDoCarrinhoRepository.findByCarrinho_IdCarrinhoAndProduto_IdProduto(idCarrinho, idProduto)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Produto", "idProduto", idProduto));
+        List<ItemDoCarrinho> itens = itemDoCarrinhoRepository.findByProduto_IdProduto(idProduto);
 
-        if (itemDoCarrinho == null) {
-            throw new APIException("Produto " + produto.getNomeProduto() + "não está disponível no carrinho!!! ");
+        for (ItemDoCarrinho item : itens) {
+            Carrinho carrinho = item.getCarrinho();
+
+            BigDecimal valorAtualDoItem = item.getPrecoComDesconto().multiply(BigDecimal.valueOf(item.getQuantidade()));
+            BigDecimal precoCarrinhoSemItem = carrinho.getPrecoTotal().subtract(valorAtualDoItem);
+
+            item.setDesconto(produto.getDesconto());
+            item.setPrecoComDesconto(produto.getPrecoEspecial());
+
+            BigDecimal novoValorDoItem = item.getPrecoComDesconto().multiply(BigDecimal.valueOf(item.getQuantidade()));
+            carrinho.setPrecoTotal(precoCarrinhoSemItem.add(novoValorDoItem));
+
+            itemDoCarrinhoRepository.save(item);
+            carrinhoRepository.save(carrinho);
         }
+    }
 
-        double precoCarrinho = carrinho.getPrecoTotal() -
-                (itemDoCarrinho.getPrecoComDesconto() * itemDoCarrinho.getQuantidade());
+    // ImplementacaoCarrinhoService.java
+    @Override
+    public void limparCarrinhoAposPedido(Long idCarrinho) {
+        Carrinho carrinho = carrinhoRepository.findById(idCarrinho)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Carrinho", "idCarrinho", idCarrinho));
 
-        itemDoCarrinho.setPrecoComDesconto(produto.getPrecoEspecial());
-
-        carrinho.setPrecoTotal(precoCarrinho +
-                (itemDoCarrinho.getPrecoComDesconto() * itemDoCarrinho.getQuantidade()));
-
-        itemDoCarrinho = itemDoCarrinhoRepository.save(itemDoCarrinho);
+        carrinho.getItensDoCarrinho().clear();
+        carrinho.setPrecoTotal(BigDecimal.ZERO);
+        carrinhoRepository.save(carrinho);
     }
 
     private Carrinho criarCarrinho() {
@@ -231,7 +255,7 @@ public class ImplementacaoCarrinhoService implements CarrinhoService {
 
         Carrinho carrinho = new Carrinho();
 
-        carrinho.setPrecoTotal(0.00);
+        carrinho.setPrecoTotal(BigDecimal.ZERO);
         carrinho.setUsuario(utilitarioDeAutenticacao.usuarioLogado());
 
         return carrinhoRepository.save(carrinho);

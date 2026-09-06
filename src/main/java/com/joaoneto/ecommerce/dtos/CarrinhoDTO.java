@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class CarrinhoDTO {
     private Long idCarrinho;
 
     @Schema(description = "Preço total de todos os itens do carrinho", example = "6299.82")
-    private double precoTotal = 0.0;
+    private BigDecimal precoTotal = BigDecimal.ZERO;
 
     @Schema(description = "Lista de itens presentes no carrinho")
     private List<ItemDoCarrinhoDTO> itens = new ArrayList<>();

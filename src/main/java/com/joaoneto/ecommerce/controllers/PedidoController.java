@@ -1,5 +1,6 @@
 package com.joaoneto.ecommerce.controllers;
 
+import com.joaoneto.ecommerce.dtos.AtualizarStatusPedidoDTO;
 import com.joaoneto.ecommerce.dtos.PedidoDTO;
 import com.joaoneto.ecommerce.dtos.RespostaDaAPI;
 import com.joaoneto.ecommerce.dtos.SolicitacaoDePedidoDTO;
@@ -14,9 +15,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "APIs de Pedido", description = "APIs para gerenciamento de pedidos")
 @SecurityRequirement(name = "Bearer Authentication")
@@ -52,7 +56,7 @@ public class PedidoController {
     public ResponseEntity<PedidoDTO> criarPedido(
             @Parameter(description = "Método de pagamento utilizado (ex: cartao_credito, pix, boleto)")
             @PathVariable String metodoDePagamento,
-            @RequestBody SolicitacaoDePedidoDTO solicitacaoDePedidoDTO) {
+            @Valid @RequestBody SolicitacaoDePedidoDTO solicitacaoDePedidoDTO) {
 
         String email = utilitarioDeAutenticacao.emailDoUsuarioLogado();
         PedidoDTO pedido = pedidoService.realizarPedido(
@@ -66,5 +70,51 @@ public class PedidoController {
         );
 
         return new ResponseEntity<>(pedido, HttpStatus.CREATED);
+    }
+
+    @Operation(summary = "Buscar pedidos do usuário logado", description = "API para buscar o histórico de pedidos do usuário autenticado, ordenados do mais recente para o mais antigo")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedidos encontrados com sucesso (lista vazia se o usuário ainda não tiver pedidos)",
+                    content = @Content(array = @io.swagger.v3.oas.annotations.media.ArraySchema(schema = @Schema(implementation = PedidoDTO.class)))),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
+    })
+    @GetMapping("/pedidos/usuarios")
+    public ResponseEntity<List<PedidoDTO>> buscarPedidosDoUsuarioLogado() {
+        String email = utilitarioDeAutenticacao.emailDoUsuarioLogado();
+        return ResponseEntity.ok(pedidoService.buscarPedidosDoUsuarioLogado(email));
+    }
+
+    @Operation(summary = "Listar todos os pedidos", description = "API restrita a administradores para listar todos os pedidos de todos os clientes")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedidos encontrados com sucesso",
+                    content = @Content(array = @io.swagger.v3.oas.annotations.media.ArraySchema(schema = @Schema(implementation = PedidoDTO.class)))),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
+    })
+    @GetMapping("/administrador/pedidos")
+    public ResponseEntity<List<PedidoDTO>> listarTodosPedidos() {
+        return ResponseEntity.ok(pedidoService.listarTodosPedidos());
+    }
+
+    @Operation(summary = "Atualizar status do pedido", description = "API restrita a administradores para confirmar pagamento ou avançar o status de um pedido (ex: PAGO, ENVIADO, ENTREGUE, CANCELADO). O status nunca é definido automaticamente a partir de dados informados pelo cliente no momento da compra.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Status do pedido atualizado com sucesso",
+                    content = @Content(schema = @Schema(implementation = PedidoDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Transição de status inválida, ou corpo da requisição inválido",
+                    content = @Content(schema = @Schema(implementation = RespostaDaAPI.class),
+                            examples = @ExampleObject(value = "{\"mensagem\": \"Não é possível mudar o status de ENTREGUE para PENDENTE.\", \"status\": false}"))),
+            @ApiResponse(responseCode = "404", description = "Pedido não encontrado",
+                    content = @Content(schema = @Schema(implementation = RespostaDaAPI.class),
+                            examples = @ExampleObject(value = "{\"mensagem\": \"Pedido nao encontrado com idPedido: 10\", \"status\": false}"))),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
+    })
+    @PutMapping("/administrador/pedidos/{idPedido}/status")
+    public ResponseEntity<PedidoDTO> atualizarStatusPedido(
+            @Parameter(description = "ID do pedido que você deseja atualizar o status")
+            @PathVariable Long idPedido,
+            @Valid @RequestBody AtualizarStatusPedidoDTO atualizarStatusPedidoDTO) {
+
+        PedidoDTO pedidoAtualizado = pedidoService.atualizarStatusPedido(idPedido, atualizarStatusPedidoDTO.getNovoStatus());
+
+        return ResponseEntity.ok(pedidoAtualizado);
     }
 }

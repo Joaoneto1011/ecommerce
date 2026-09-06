@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -35,10 +37,10 @@ public class ItemDoCarrinho {
 
     @Min(value = 0, message = "O desconto não pode ser menor que 0%.")
     @Max(value = 100, message = "O desconto não pode ser maior que 100%.")
-    @Column(name = "desconto")
-    private double desconto;
+    @Column(name = "desconto", precision = 5, scale = 2)
+    private BigDecimal desconto = BigDecimal.ZERO;
 
     @PositiveOrZero(message = "O preço do produto não pode ser negativo.")
-    @Column(name = "preco_com_desconto")
-    private double precoComDesconto;
+    @Column(name = "preco_com_desconto", precision = 12, scale = 2)
+    private BigDecimal precoComDesconto = BigDecimal.ZERO;
 }

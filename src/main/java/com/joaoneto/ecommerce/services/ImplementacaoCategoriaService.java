@@ -1,5 +1,6 @@
 package com.joaoneto.ecommerce.services;
 
+import com.joaoneto.ecommerce.config.ConstantesApp;
 import com.joaoneto.ecommerce.domain.Categoria;
 import com.joaoneto.ecommerce.dtos.CategoriaDTO;
 import com.joaoneto.ecommerce.dtos.RespostaDeCategoriaDTO;
@@ -12,8 +13,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ImplementacaoCategoriaService implements  CategoriaService{
@@ -30,11 +33,14 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     @Override
     public RespostaDeCategoriaDTO buscarTodasCategorias(Integer numeroPagina, Integer tamanhoPagina, String ordenarPor, String classificarOrdem) {
 
+        validarCampoOrdenacao(ordenarPor);
+
         Sort ordenacao = classificarOrdem.equalsIgnoreCase("asc")
                 ? Sort.by(ordenarPor).ascending()
                 : Sort.by(ordenarPor).descending();
 
-        Pageable detalhesPagina = PageRequest.of(numeroPagina, tamanhoPagina, ordenacao);
+        Integer tamanhoPaginaSeguro = Math.min(tamanhoPagina, ConstantesApp.TAMANHO_MAXIMO_PAGINA);
+        Pageable detalhesPagina = PageRequest.of(numeroPagina, tamanhoPaginaSeguro, ordenacao);
         Page<Categoria> paginaDeCategorias = categoriaRepository.findAll(detalhesPagina);
 
         List<Categoria> categorias = paginaDeCategorias.getContent();
@@ -61,6 +67,14 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     }
 
     @Override
+    public List<CategoriaDTO> buscarTodasCategoriasSemPaginacao() {
+
+        return categoriaRepository.findAll().stream()
+                .map(categoria -> modelMapper.map(categoria, CategoriaDTO.class))
+                .toList();
+    }
+
+    @Override
     public CategoriaDTO buscarCategoriaPorID(Long id) {
 
         Categoria categoria = categoriaRepository.findById(id)
@@ -70,18 +84,13 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     }
 
     @Override
+    @Transactional
     public CategoriaDTO criarCategoria(CategoriaDTO categoriaDTO) {
 
-        Categoria existente = categoriaRepository
-                .findByNomeCategoria(categoriaDTO.getNomeCategoria());
-
-        if (existente != null) {
-            throw new APIException(
-                    "Categoria com o nome "
-                            + categoriaDTO.getNomeCategoria()
-                            + " ja existe!"
-            );
+        if (categoriaRepository.findByNomeCategoria(categoriaDTO.getNomeCategoria()).isPresent()) {
+            throw new APIException("Categoria com o nome " + categoriaDTO.getNomeCategoria() + " ja existe!");
         }
+
         Categoria categoria = modelMapper.map(categoriaDTO, Categoria.class);
 
         Categoria categoriaSalva = categoriaRepository.save(categoria);
@@ -90,6 +99,7 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     }
 
     @Override
+    @Transactional
     public String deletarCategoriaPorID(Long id) {
 
         Categoria categoria = categoriaRepository.findById(id)
@@ -101,21 +111,30 @@ public class ImplementacaoCategoriaService implements  CategoriaService{
     }
 
     @Override
+    @Transactional
     public CategoriaDTO atualizarCategoriaPorID(CategoriaDTO categoriaDTO, Long id) {
 
         Categoria categoria = categoriaRepository.findById(id)
                         .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria", "Id", id));
 
-        Categoria existente = categoriaRepository.findByNomeCategoria(categoriaDTO.getNomeCategoria());
-
-        if (existente != null && !existente.getIdCategoria().equals(id)) {
-            throw new APIException("Ja existe uma categoria com esse nome!");
-        }
+        categoriaRepository.findByNomeCategoria(categoriaDTO.getNomeCategoria())
+                .filter(existente -> !existente.getIdCategoria().equals(id))
+                .ifPresent(existente -> {
+                    throw new APIException("Ja existe uma categoria com esse nome!");
+                });
 
         categoria.setNomeCategoria(categoriaDTO.getNomeCategoria());
 
         Categoria categoriaAtualizada = categoriaRepository.save(categoria);
 
         return modelMapper.map(categoriaAtualizada, CategoriaDTO.class);
+    }
+
+    private static final Set<String> CAMPOS_ORDENACAO_PERMITIDOS = Set.of("idCategoria", "nomeCategoria");
+
+    private void validarCampoOrdenacao(String campo) {
+        if (!CAMPOS_ORDENACAO_PERMITIDOS.contains(campo)) {
+            throw new APIException("Campo de ordenação inválido: '" + campo + "'. Utilize um de: " + CAMPOS_ORDENACAO_PERMITIDOS);
+        }
     }
 }

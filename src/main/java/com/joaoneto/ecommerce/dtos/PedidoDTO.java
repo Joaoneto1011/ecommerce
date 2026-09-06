@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class PedidoDTO {
     private PagamentoDTO pagamento;
 
     @Schema(description = "Valor total do pedido", example = "6299.82")
-    private double valorTotal;
+    private BigDecimal valorTotal;
 
     @Schema(description = "Status atual do pedido", example = "PENDENTE")
     private String statusPedido;

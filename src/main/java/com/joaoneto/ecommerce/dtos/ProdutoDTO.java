@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +25,7 @@ public class ProdutoDTO {
     private String imagem;
 
     @NotBlank(message = "A descrição não deve estar em branco")
-    @Size(min = 6, message = "A descrição deve ter no mínimo 6 caracteres")
+    @Size(min = 6, max = 500, message = "A descrição deve ter entre 6 e 500 caracteres")
     @Schema(description = "Descrição detalhada do produto", example = "Notebook gamer com 16GB de RAM e SSD de 512GB")
     private String descricao;
 
@@ -35,14 +37,17 @@ public class ProdutoDTO {
     @NotNull(message = "O preço é obrigatório")
     @Positive(message = "O preço deve ser maior que zero")
     @Schema(description = "Preço original do produto", example = "3499.90")
-    private double preco;
+    private BigDecimal preco;
 
     @DecimalMin(value = "0.0", message = "O desconto não pode ser negativo")
     @DecimalMax(value = "100.0", message = "O desconto não pode ser maior que 100%")
     @Schema(description = "Percentual de desconto aplicado ao produto", example = "10.0")
-    private double desconto;
+    private BigDecimal desconto = BigDecimal.ZERO;
 
     @Schema(description = "Preço final do produto já com o desconto aplicado", example = "3149.91")
-    private double precoEspecial;
+    private BigDecimal precoEspecial = BigDecimal.ZERO;
+
+    @Schema(description = "Categoria à qual o produto pertence (somente leitura)")
+    private CategoriaDTO categoria;
 
 }

@@ -41,6 +41,11 @@ public class ProdutoController {
     })
     @GetMapping("/public/produtos")
     public ResponseEntity<RespostaDeProdutoDTO> buscarTodosProdutos(
+
+            @Parameter(description = "Palavra chave para filtrar")
+            @RequestParam(name = "palavraChave", required = false) String palavraChave,
+            @Parameter(description = "Categoria do Produto")
+            @RequestParam(name = "categoria", required = false) String categoria,
             @Parameter(description = "Número da página")
             @RequestParam(name = "numeroPagina", defaultValue = ConstantesApp.NUMERO_PAGINA, required = false) Integer numeroPagina,
             @Parameter(description = "Quantidade de itens por página")
@@ -50,8 +55,27 @@ public class ProdutoController {
             @Parameter(description = "Direção da ordenação (ASC ou DESC)")
             @RequestParam(name = "classificarOrdem", defaultValue = ConstantesApp.ORDEM_CLASSIFICACAO, required = false) String classificarOrdem)
     {
-        RespostaDeProdutoDTO respostaDeProduto = produtoService.buscarTodosProdutos(numeroPagina, tamanhoPagina, ordenarPor, classificarOrdem);
+        RespostaDeProdutoDTO respostaDeProduto = produtoService.buscarTodosProdutos(numeroPagina, tamanhoPagina, ordenarPor, classificarOrdem, palavraChave, categoria);
         return new ResponseEntity<>(respostaDeProduto, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Buscar produto por ID", description = "API pública para buscar um produto específico pelo seu ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Produto encontrado com sucesso",
+                    content = @Content(schema = @Schema(implementation = ProdutoDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Produto não encontrado",
+                    content = @Content(schema = @Schema(implementation = RespostaDaAPI.class),
+                            examples = @ExampleObject(value = "{\"mensagem\": \"Produto nao encontrado com idProduto: 501\", \"status\": false}"))),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
+    })
+    @GetMapping("/public/produtos/{idProduto}")
+    public ResponseEntity<ProdutoDTO> buscarProdutoPorId(
+            @Parameter(description = "ID do produto que você deseja buscar")
+            @PathVariable Long idProduto) {
+
+        ProdutoDTO produtoDTO = produtoService.buscarProdutoPorId(idProduto);
+
+        return new ResponseEntity<>(produtoDTO, HttpStatus.OK);
     }
 
     @Operation(summary = "Buscar produtos por categoria", description = "API pública para buscar todos os produtos de uma categoria específica")
@@ -182,7 +206,7 @@ public class ProdutoController {
         return new ResponseEntity<>(produtoDeletado, HttpStatus.OK);
     }
 
-    @Operation(summary = "Atualizar imagem do produto", description = "API para atualizar a imagem de um produto existente")
+    @Operation(summary = "Atualizar imagem do produto", description = "API para atualizar a imagem de um produto existente (requer perfil de administrador)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Imagem do produto atualizada com sucesso",
                     content = @Content(schema = @Schema(implementation = ProdutoDTO.class))),
@@ -192,7 +216,7 @@ public class ProdutoController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao processar a imagem", content = @Content),
     })
     @SecurityRequirement(name = "Bearer Authentication")
-    @PutMapping("/produtos/{idProduto}/imagem")
+    @PutMapping("/administrador/produtos/{idProduto}/imagem")
     public ResponseEntity<ProdutoDTO> atualizarImagemProduto(
             @Parameter(description = "ID do produto que você deseja atualizar a imagem")
             @PathVariable Long idProduto,

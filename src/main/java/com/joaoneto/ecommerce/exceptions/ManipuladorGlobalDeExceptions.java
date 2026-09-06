@@ -1,10 +1,15 @@
 package com.joaoneto.ecommerce.exceptions;
 
 import com.joaoneto.ecommerce.dtos.RespostaDaAPI;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +21,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ManipuladorGlobalDeExceptions {
+
+    private static final Logger logger = LoggerFactory.getLogger(ManipuladorGlobalDeExceptions.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RespostaDaAPI> tratarErrosValidacao(MethodArgumentNotValidException excecao) {
@@ -86,5 +93,40 @@ public class ManipuladorGlobalDeExceptions {
                 false
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(resposta);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<RespostaDaAPI> tratarViolacaoDeConstraintDaEntidade(ConstraintViolationException excecao) {
+
+        Map<String, String> erros = new HashMap<>();
+
+        for (ConstraintViolation<?> violacao : excecao.getConstraintViolations()) {
+            String campo = violacao.getPropertyPath().toString();
+            erros.put(campo, violacao.getMessage());
+        }
+
+        RespostaDaAPI resposta = new RespostaDaAPI("Erro de validação", false);
+        resposta.setErros(erros);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<RespostaDaAPI> tratarConflitoDeConcorrencia(ObjectOptimisticLockingFailureException excecao) {
+        RespostaDaAPI resposta = new RespostaDaAPI(
+                "Este recurso foi alterado por outra requisição enquanto você o modificava. Tente novamente.",
+                false
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(resposta);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<RespostaDaAPI> tratarErroGenerico(Exception excecao) {
+        logger.error("Erro não tratado", excecao);
+        RespostaDaAPI resposta = new RespostaDaAPI(
+                "Erro interno do servidor. Tente novamente mais tarde.",
+                false
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
     }
 }

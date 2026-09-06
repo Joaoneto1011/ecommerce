@@ -1,6 +1,8 @@
 package com.joaoneto.ecommerce.exceptions;
 
-public class NomeUsuarioNaoEncontradoException extends RuntimeException {
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+public class NomeUsuarioNaoEncontradoException extends UsernameNotFoundException {
 
     public NomeUsuarioNaoEncontradoException(String mensagem) {
         super(mensagem);

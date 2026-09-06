@@ -56,8 +56,9 @@ public class UtilitarioJwt {
         String jwt = gerarTokenComNomeUsuario(usuarioPrincipal.getNomeUsuario());
         return ResponseCookie.from(jwtCookie, jwt)
                 .path("/api")
-                .maxAge(24 * 60 * 60)
-                .httpOnly(false)
+                .maxAge(jwtExpirationMs / 1000)
+                .httpOnly(true)
+                .sameSite("Lax")
                 .build();
     }
 

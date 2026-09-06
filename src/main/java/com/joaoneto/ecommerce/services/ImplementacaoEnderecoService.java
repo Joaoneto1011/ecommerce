@@ -9,6 +9,7 @@ import com.joaoneto.ecommerce.repositories.UsuarioRepository;
 import com.joaoneto.ecommerce.util.UtilitarioDeAutenticacao;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class ImplementacaoEnderecoService implements EnderecoService {
     }
 
     @Override
+    @Transactional
     public EnderecoDTO criarEndereco(EnderecoDTO enderecoDTO, Usuario usuario) {
 
         Endereco endereco = modelMapper.map(enderecoDTO, Endereco.class);
@@ -78,6 +80,7 @@ public class ImplementacaoEnderecoService implements EnderecoService {
     }
 
     @Override
+    @Transactional
     public EnderecoDTO atualizarEndereco(Long idEndereco, EnderecoDTO enderecoDTO) {
 
         Endereco enderecoDoBancoDeDados = enderecoRepository.findById(idEndereco)
@@ -104,6 +107,7 @@ public class ImplementacaoEnderecoService implements EnderecoService {
     }
 
     @Override
+    @Transactional
     public String deletarEndereco(Long idEndereco) {
 
         Endereco enderecoDoBancoDeDados = enderecoRepository.findById(idEndereco)

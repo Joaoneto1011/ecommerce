@@ -83,7 +83,7 @@ public class CarrinhoController {
                             examples = @ExampleObject(value = "{\"mensagem\": \"Não há itens no carrinho.\", \"status\": false}"))),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @GetMapping("/carrinhos")
+    @GetMapping("/administrador/carrinhos")
     public ResponseEntity<List<CarrinhoDTO>> obterCarrinhos() {
 
         List<CarrinhoDTO> carrinhoDTOS = carrinhoService.obterTodosCarrinhos();
@@ -130,7 +130,7 @@ public class CarrinhoController {
                             examples = @ExampleObject(value = "{\"mensagem\": \"Produto nao encontrado com idProduto: 501\", \"status\": false}"))),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content),
     })
-    @PutMapping("/carrinho/produtos/{idProduto}/quantidade/{operacao}")
+    @PutMapping("/carrinhos/produtos/{idProduto}/quantidade/{operacao}")
     public ResponseEntity<CarrinhoDTO> atualizarProdutoDoCarrinho(
             @Parameter(description = "ID do produto que você deseja atualizar no carrinho")
             @PathVariable Long idProduto,

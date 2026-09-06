@@ -138,24 +138,24 @@ public class AutenticacaoController {
 
         if(perfisSelecionados == null) {
             Perfil perfilUsuario = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_USUARIO)
-                    .orElseThrow(() -> new RuntimeException("Erro: Perfil não encontrado"));
+                    .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
             perfis.add(perfilUsuario);
         } else {
             perfisSelecionados.forEach(perfil -> {
                 switch (perfil) {
                     case "administrador":
                         Perfil perfilAdministrador = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_ADMINISTRADOR)
-                                .orElseThrow(() -> new RuntimeException("Erro: Perfil não encontrado"));
+                                .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
                         perfis.add(perfilAdministrador);
                         break;
                     case "vendedor":
                         Perfil perfilVendedor = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_VENDEDOR)
-                                .orElseThrow(() -> new RuntimeException("Erro: Perfil não encontrado"));
+                                .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
                         perfis.add(perfilVendedor);
                         break;
                     case "usuario":
                         Perfil perfilUsuario = perfilRepository.findByTipoPerfil(TipoPerfil.PERFIL_USUARIO)
-                                .orElseThrow(() -> new RuntimeException("Erro: Perfil não encontrado"));
+                                .orElseThrow(() -> new APIException("Erro: Perfil não encontrado"));
                         perfis.add(perfilUsuario);
                         break;
                     default:
